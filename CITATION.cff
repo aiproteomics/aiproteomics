@@ -1,0 +1,24 @@
+# YAML 1.2
+---
+cff-version: "1.1.0"
+title: "aiproteomics"
+authors:
+  -
+    family-names: Richardson
+    given-names: Robin A
+    orcid: "https://orcid.org/0000-0002-9984-2720"
+  -
+    family-names: Pham
+    given-names: Thang V
+  -
+    family-names: Henneman
+    given-names: Alex A
+date-released: 20??-MM-DD
+doi: <insert your DOI here>
+version: "0.1.0"
+repository-code: "https://github.com/https://github.com/ai-proteomics/aiproteomics"
+keywords:
+  - machine learning
+  - proteomics
+message: "If you use this software, please cite it using these metadata."
+license: Apache-2.0
