@@ -15,10 +15,10 @@
 | Coverage                           | [![workflow scc badge](https://sonarcloud.io/api/project_badges/measure?project=https://github.com/ai-proteomics_aiproteomics&metric=coverage)](https://sonarcloud.io/dashboard?id=https://github.com/ai-proteomics_aiproteomics) |
 | Documentation                      | [![Documentation Status](https://readthedocs.org/projects/aiproteomics/badge/?version=latest)](https://aiproteomics.readthedocs.io/en/latest/?badge=latest) |
 | **GitHub Actions**                 | &nbsp; |
-| Build                              | [![build](https://github.com/https://github.com/ai-proteomics/aiproteomics/actions/workflows/build.yml/badge.svg)](https://github.com/https://github.com/ai-proteomics/aiproteomics/actions/workflows/build.yml) |
-| Citation data consistency               | [![cffconvert](https://github.com/https://github.com/ai-proteomics/aiproteomics/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/https://github.com/ai-proteomics/aiproteomics/actions/workflows/cffconvert.yml) |
-| SonarCloud                         | [![sonarcloud](https://github.com/https://github.com/ai-proteomics/aiproteomics/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/https://github.com/ai-proteomics/aiproteomics/actions/workflows/sonarcloud.yml) |
-| MarkDown link checker              | [![markdown-link-check](https://github.com/https://github.com/ai-proteomics/aiproteomics/actions/workflows/markdown-link-check.yml/badge.svg)](https://github.com/https://github.com/ai-proteomics/aiproteomics/actions/workflows/markdown-link-check.yml) |
+| Build                              | [![build](https://github.com/https://github.com/ai-proteomics/aiproteomics/actions/workflows/build.yml/badge.svg)](https://github.com/ai-proteomics/aiproteomics/actions/workflows/build.yml) |
+| Citation data consistency               | [![cffconvert](https://github.com/ai-proteomics/aiproteomics/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/ai-proteomics/aiproteomics/actions/workflows/cffconvert.yml) |
+| SonarCloud                         | [![sonarcloud](https://github.com/ai-proteomics/aiproteomics/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/https://github.com/ai-proteomics/aiproteomics/actions/workflows/sonarcloud.yml) |
+| MarkDown link checker              | [![markdown-link-check](https://github.com/ai-proteomics/aiproteomics/actions/workflows/markdown-link-check.yml/badge.svg)](https://github.com/https://github.com/ai-proteomics/aiproteomics/actions/workflows/markdown-link-check.yml) |
 
 ## `aiproteomics` python package
 This package contains various tools, datasets and ML model implementations from the field of (phospho-)proteomics. It is intended to facilitate the testing and comparison of different neural network architectures and existing models, using the same datasets. Both retention time and fragmentation (MSMS) models are included.
