@@ -25,6 +25,10 @@ This package contains various tools, datasets and ML model implementations from 
 
 Implementations of existing models from the literature are intended to be modifiable/extendable. For example, so that tests may be carried out with different peptide input lengths etc.
 
+## Using aiprotoeomics
+
+In order to use the package as an end-user begin with the entry point demo.ipynb
+
 ## Installation
 
 To install aiproteomics from GitHub repository, do:
