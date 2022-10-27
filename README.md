@@ -1,7 +1,5 @@
 ## Badges
 
-(Customize these badges with your own links, and check https://shields.io/ or https://badgen.net/ to see which other badges are available.)
-
 | fair-software.eu recommendations | |
 | :-- | :--  |
 | (1/5) code repository              | [![github repo badge](https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/https://github.com/ai-proteomics/aiproteomics) |
@@ -10,10 +8,7 @@
 | (4/5) citation                     | [![DOI](https://zenodo.org/badge/DOI/<replace-with-created-DOI>.svg)](https://doi.org/<replace-with-created-DOI>) |
 | (5/5) checklist                    | [![workflow cii badge](https://bestpractices.coreinfrastructure.org/projects/<replace-with-created-project-identifier>/badge)](https://bestpractices.coreinfrastructure.org/projects/<replace-with-created-project-identifier>) |
 | howfairis                          | [![fair-software badge](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu) |
-| **Other best practices**           | &nbsp; |
-| Static analysis                    | [![workflow scq badge](https://sonarcloud.io/api/project_badges/measure?project=https://github.com/ai-proteomics_aiproteomics&metric=alert_status)](https://sonarcloud.io/dashboard?id=https://github.com/ai-proteomics_aiproteomics) |
-| Coverage                           | [![workflow scc badge](https://sonarcloud.io/api/project_badges/measure?project=https://github.com/ai-proteomics_aiproteomics&metric=coverage)](https://sonarcloud.io/dashboard?id=https://github.com/ai-proteomics_aiproteomics) |
-| Documentation                      | [![Documentation Status](https://readthedocs.org/projects/aiproteomics/badge/?version=latest)](https://aiproteomics.readthedocs.io/en/latest/?badge=latest) |
+
 | **GitHub Actions**                 | &nbsp; |
 | Build                              | [![build](https://github.com/https://github.com/ai-proteomics/aiproteomics/actions/workflows/build.yml/badge.svg)](https://github.com/ai-proteomics/aiproteomics/actions/workflows/build.yml) |
 | Citation data consistency               | [![cffconvert](https://github.com/ai-proteomics/aiproteomics/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/ai-proteomics/aiproteomics/actions/workflows/cffconvert.yml) |
@@ -25,19 +20,11 @@ This package contains various tools, datasets and ML model implementations from 
 
 Implementations of existing models from the literature are intended to be modifiable/extendable. For example, so that tests may be carried out with different peptide input lengths etc.
 
-## Using aiprotoeomics
-
-In order to use the package as an end-user begin with the entry point demo.ipynb
-
-## Installation
-
-To install aiproteomics from GitHub repository, do:
-
-```console
-git clone https://github.com/https://github.com/ai-proteomics/aiproteomics.git
-cd aiproteomics
-python3 -m pip install .
-```
+## Redesign in progress
+This package is in the process of being redesigned to make it more general and portable. The redesign is focussing on the creation of:
+1. Generators of models (in the open and portable ONNX format)
+2. Converters from .msp format to input for each model type
+3. Converters from each model type to .msp
 
 ## Contributing
 
