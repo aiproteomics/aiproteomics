@@ -26,6 +26,10 @@ This package is in the process of being redesigned to make it more general and p
 2. Converters from .msp format to input for each model type
 3. Converters from each model type to .msp
 
+Below is a diagram showing how the proposed tools will be combined to produce a pipeline for training proteomics models and using them to generate synthetic spectral libraries:
+
+![Proposed aiproteomics pipeline](proposed_aiproteomics_pipeline.png)
+
 ## Contributing
 
 If you want to contribute to the development of aiproteomics,
