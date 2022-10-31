@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+import tf2onnx
 
 from aiproteomics.frag.models.prosit1.layers import Attention
 
@@ -20,13 +21,26 @@ def masked_spectral_distance(true, pred):
     true_norm = k.l2_normalize(pred_masked, axis=-1)
     product = k.sum(pred_norm * true_norm, axis=1)
     arccos = tensorflow.acos(product)
-    return 2 * arccos / numpy.pi
+    return 2 * arccos / np.pi
 
 
-def build_prosit1_model():
+def build_prosit1_model(save_format='onnx'):
     """
-    Creates the Prosit model (Gessulat, S., Schmidt, T., Zolg, D.P. et al. Prosit: proteome-wide prediction of peptide tandem mass spectra by deep learning. Nat Methods 16, 509–518 (2019). https://doi.org/10.1038/s41592-019-0426-7)
+    Creates the Prosit model:
+        Gessulat, S., Schmidt, T., Zolg, D.P. et al.
+        Prosit: proteome-wide prediction of peptide tandem mass spectra by deep learning. 
+        Nat Methods 16, 509–518 (2019). https://doi.org/10.1038/s41592-019-0426-7
+    
+    args:
+        save_format (str): 'onnx' or 'keras' or 'both' or None. Defaults to 'onnx'. Use None if you do not wish to save the model
     """
+
+    valid_save_formats = ['onnx', 'keras', 'both', None]
+    if save_format not in valid_save_formats:
+        raise ValueError(
+            f'invalid output format given ({save_format}).\m'
+            f'Valid output formats are {valid_save_formats}.'
+        )
 
     # Input layers
     peptides_in = keras.Input(name='peptides_in', dtype='int32', sparse=False, batch_input_shape=(None, 30))
@@ -184,5 +198,21 @@ def build_prosit1_model():
     # Compile model
     model = keras.Model(inputs=[peptides_in, precursor_charge_in, collision_energy_in], outputs=output_layer)
     model.compile(loss='masked_spectral_distance', optimizer='adam', metrics=['accuracy'])
+
+    # Save model
+    output_location = './aiproteomics/modelgen/'
+    if save_format == None:
+        # do not save
+        pass
+    if save_format == 'onnx' or save_format == 'both':
+        # save as onnx
+        # copied code from example on https://github.com/onnx/tensorflow-onnx/blob/main/tutorials/keras-resnet50.ipynb
+        # not sure how to modify appropriately
+        spec = (tf.TensorSpec((None, 224, 224, 3), tf.float32)) # needs to be changed to match current model; not sure what needs to change
+        output_path = output_location + model.name + ".onnx"
+        tf2onnx.convert.from_keras(model, input_signature=spec, opset=13, output_path=output_path) # I don't understand what opset is and whether it's best to define or use default (newest opset)
+    if save_format == 'keras' or save_format == 'both':
+        # save as keras
+        model.save(output_location + model.name)
 
     return model
