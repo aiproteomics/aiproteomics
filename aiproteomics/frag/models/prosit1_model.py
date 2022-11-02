@@ -207,13 +207,16 @@ def build_prosit1_model(save_format='onnx'):
     else:
         if save_format == 'onnx' or save_format == 'both':
             # save as onnx
-            # copied code from example on https://github.com/onnx/tensorflow-onnx/blob/main/tutorials/keras-resnet50.ipynb
-            # not sure how to modify appropriately
-            spec = (tf.TensorSpec((None, 224, 224, 3), tf.float32)) # needs to be changed to match current model; not sure what needs to change
             output_path = output_location + model.name + ".onnx"
-            tf2onnx.convert.from_keras(model, input_signature=spec, opset=13, output_path=output_path) # I don't understand what opset is and whether it's best to define or use default (newest opset)
+            # using default opset and spec settings for now, might need to be hardcoded if it doesn't work for all cases in the future            
+            # for some idea on how to set this, see example on https://github.com/onnx/tensorflow-onnx/blob/main/tutorials/keras-resnet50.ipynb
+            tf2onnx.convert.from_keras(model, output_path=output_path)
         if save_format == 'keras' or save_format == 'both':
             # save as keras
             model.save(output_location + model.name)
 
     return model
+
+
+if __name__ == "__main__":
+    build_prosit1_model(save_format='onnx')
