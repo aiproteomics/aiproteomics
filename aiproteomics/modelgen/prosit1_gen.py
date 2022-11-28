@@ -4,6 +4,7 @@ from tensorflow.keras import layers
 import tf2onnx
 
 from .prosit1.layers import Attention
+from .save_model import save_model
 
 def masked_spectral_distance(true, pred):
     """
@@ -23,7 +24,7 @@ def masked_spectral_distance(true, pred):
     return 2 * arccos / np.pi
 
 
-def build_prosit1_model(save_format='onnx'):
+def build_prosit1_model():
     """
     Creates the Prosit model:
         Gessulat, S., Schmidt, T., Zolg, D.P. et al.
@@ -33,13 +34,6 @@ def build_prosit1_model(save_format='onnx'):
     args:
         save_format (str): 'onnx' or 'keras' or 'both' or None. Defaults to 'onnx'. Use None if you do not wish to save the model
     """
-
-    valid_save_formats = ['onnx', 'keras', 'both', None]
-    if save_format not in valid_save_formats:
-        raise ValueError(
-            f'Invalid save_format given ({save_format}).\n'
-            f'Select valid save_format from {valid_save_formats}.'
-        )
 
     # Input layers
     peptides_in = keras.Input(name='peptides_in', dtype='int32', sparse=False, batch_input_shape=(None, 30))
@@ -198,22 +192,7 @@ def build_prosit1_model(save_format='onnx'):
     model = keras.Model(inputs=[peptides_in, precursor_charge_in, collision_energy_in], outputs=output_layer)
     model.compile(loss='masked_spectral_distance', optimizer='adam', metrics=['accuracy'])
 
-    # Save model
-    output_location = './aiproteomics/modelgen/saved_models/'
-    if save_format == None:
-        # do not save
-        pass
-    else:
-        if save_format == 'onnx' or save_format == 'both':
-            # save as onnx
-            output_path = output_location + model.name + ".onnx"
-            # using default opset and spec settings for now, might need to be hardcoded if it doesn't work for all cases in the future            
-            # for some idea on how to set this, see example on https://github.com/onnx/tensorflow-onnx/blob/main/tutorials/keras-resnet50.ipynb
-            tf2onnx.convert.from_keras(model, output_path=output_path)
-        if save_format == 'keras' or save_format == 'both':
-            # save as keras
-            model.save(output_location + model.name)
-
+    save_model(model, 'keras', overwrite = True)
     return model
 
 
