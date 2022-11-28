@@ -1,6 +1,5 @@
 from onnx import load
 from .prosit1_gen import build_prosit1_model
-import os
 
 def shape2tuple(shape):
     return tuple(getattr(d, 'dim_value', 0) for d in shape.dim)
