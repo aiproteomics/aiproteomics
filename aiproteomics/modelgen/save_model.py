@@ -33,6 +33,8 @@ def save_model(
             # might need to be hardcoded if it doesn't work for all cases in the future            
             # for some idea on how to set this, see example on https://github.com/onnx/tensorflow-onnx/blob/main/tutorials/keras-resnet50.ipynb
             output_path = output_location + model.name + ".onnx"
+            if not overwrite:
+                output_path = update_path(output_path)
             tf2onnx.convert.from_keras(model, output_path=output_path)
         if 'keras' in save_format:
             model.save(output_location + model.name)
@@ -41,3 +43,14 @@ def save_model(
             'save_model is currently only implemented for keras models. Other input formats will be added as well.'
         )
 
+
+def update_path(file):
+    basename = os.path.splitext(file)[0]
+    ext = os.path.splitext(file)[1]
+    n = 1
+    
+    while os.path.exists(file):
+        n += 1
+        file = basename + '_' + str(n) + ext
+    
+    return file

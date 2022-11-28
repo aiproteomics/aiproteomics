@@ -192,7 +192,7 @@ def build_prosit1_model():
     model = keras.Model(inputs=[peptides_in, precursor_charge_in, collision_energy_in], outputs=output_layer)
     model.compile(loss='masked_spectral_distance', optimizer='adam', metrics=['accuracy'])
 
-    save_model(model, 'keras', overwrite = True)
+    save_model(model, 'keras')
     return model
 
 
