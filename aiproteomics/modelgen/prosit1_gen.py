@@ -4,7 +4,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import tf2onnx
 
-from prosit1.layers import Attention
+from .prosit1.layers import Attention
 
 def masked_spectral_distance(true, pred):
     """
