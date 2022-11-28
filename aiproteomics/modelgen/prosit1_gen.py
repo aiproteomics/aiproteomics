@@ -1,7 +1,6 @@
 import numpy as np
 from tensorflow import keras
 from tensorflow.keras import layers
-import tf2onnx
 
 from .prosit1.layers import Attention
 from .save_model import save_model
@@ -31,8 +30,10 @@ def build_prosit1_model():
         Prosit: proteome-wide prediction of peptide tandem mass spectra by deep learning. 
         Nat Methods 16, 509–518 (2019). https://doi.org/10.1038/s41592-019-0426-7
     
-    args:
-        save_format (str): 'onnx' or 'keras' or 'both' or None. Defaults to 'onnx'. Use None if you do not wish to save the model
+    Args:
+        output_format (list or str, optional): format or list of formats to save the model as.
+            Set to None to not save the model.
+            Defaults to 'onnx'.
     """
 
     # Input layers
@@ -192,7 +193,10 @@ def build_prosit1_model():
     model = keras.Model(inputs=[peptides_in, precursor_charge_in, collision_energy_in], outputs=output_layer)
     model.compile(loss='masked_spectral_distance', optimizer='adam', metrics=['accuracy'])
 
-    save_model(model, 'keras')
+    save_model(model, 'prosit1', 
+        framework = 'keras', 
+        output_format = 'onnx',
+        overwrite = True)
     return model
 
 
