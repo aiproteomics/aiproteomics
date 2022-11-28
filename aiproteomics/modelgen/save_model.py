@@ -9,8 +9,19 @@ def save_model(
         overwrite = True,
     ):
 
+    # Check save formats    
+    valid_save_formats = ['onnx', 'keras']
+    invalid_save_formats = []
     if not isinstance(save_format, list):
         save_format = [save_format]
+    for format in save_format:
+        if format not in valid_save_formats:
+            invalid_save_formats.append(format)
+        if invalid_save_formats:
+            raise ValueError(
+                f'Invalid save_format given ({invalid_save_formats}).\n'
+                f'Select valid save_format from {valid_save_formats}.'
+            )
 
     if not os.path.exists(output_location):
         os.makedirs(output_location)        
