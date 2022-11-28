@@ -25,3 +25,8 @@ def save_model(
             tf2onnx.convert.from_keras(model, output_path=output_path)
         if 'keras' in save_format:
             model.save(output_location + model.name)
+    else:
+        raise NotImplementedError(
+            'save_model is currently only implemented for keras models. Other input formats will be added as well.'
+        )
+
