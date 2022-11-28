@@ -199,7 +199,7 @@ def build_prosit1_model(save_format='onnx'):
     model.compile(loss='masked_spectral_distance', optimizer='adam', metrics=['accuracy'])
 
     # Save model
-    output_location = './aiproteomics/modelgen/'
+    output_location = './aiproteomics/modelgen/saved_models/'
     if save_format == None:
         # do not save
         pass

@@ -1,5 +1,6 @@
 from onnx import load
 from .prosit1_gen import build_prosit1_model
+import os
 
 def shape2tuple(shape):
     return tuple(getattr(d, 'dim_value', 0) for d in shape.dim)
@@ -10,7 +11,9 @@ def test_prosit():
     # leaving below code in, because we'll use parts of this to get the model parameters
     # see https://onnx.ai/onnx/intro/python.html for more info
     
-    with open("./model.onnx", "rb") as f:
+    model_path = './aiproteomics/modelgen/saved_models/model.onnx'
+
+    with open(model_path, "rb") as f:
         onnx_model = load(f)
         # # display
         # # in a more nicely format

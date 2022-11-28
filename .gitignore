@@ -16,6 +16,9 @@ coverage.xml
 
 docs/_build
 
+# saved models
+aiproteomics/modelgen/saved_models/*
+
 # ide
 .idea
 .eclipse
