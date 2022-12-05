@@ -70,6 +70,10 @@ def save_model(
 
 
 def update_path(file):
+    """
+    Adds a number behind the filename if it already exists to avoid overwriting the same file.
+    """
+    
     basename = os.path.splitext(file)[0]
     ext = os.path.splitext(file)[1]
     n = 1
