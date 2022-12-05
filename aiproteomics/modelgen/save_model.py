@@ -1,6 +1,10 @@
 import os
 import tf2onnx
 
+
+VALID_OUTPUT_FORMATS = ['onnx', 'keras']
+
+
 def save_model(
         model: str, 
         name: str,
@@ -32,17 +36,16 @@ def save_model(
     """
 
     # Check save formats    
-    valid_output_formats = ['onnx', 'keras']
     invalid_output_formats = []
     if not isinstance(output_format, list):
         output_format = [output_format]
     for format in output_format:
-        if format not in valid_output_formats:
+        if format not in VALID_OUTPUT_FORMATS:
             invalid_output_formats.append(format)
         if invalid_output_formats:
             raise ValueError(
                 f'Invalid output_format given ({invalid_output_formats}).\n'
-                f'Select valid output_format from {valid_output_formats}.'
+                f'Select valid output_format from {VALID_OUTPUT_FORMATS}.'
             )
 
     if not os.path.exists(output_dir):
