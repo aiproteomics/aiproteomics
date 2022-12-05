@@ -5,23 +5,6 @@ from tensorflow.keras import layers
 from .prosit1.layers import Attention
 from .save_model import save_model
 
-def masked_spectral_distance(true, pred):
-    """
-    Function obtained from https://github.com/kusterlab/prosit/tree/master/prosit/losses.py
-    """
-    # Note, fragment ions that cannot exists (i.e. y20 for a 7mer) must have the value  -1.
-    import tensorflow
-    import keras.backend as k
-
-    epsilon = k.epsilon()
-    pred_masked = ((true + 1) * pred) / (true + 1 + epsilon)
-    true_masked = ((true + 1) * true) / (true + 1 + epsilon)
-    pred_norm = k.l2_normalize(true_masked, axis=-1)
-    true_norm = k.l2_normalize(pred_masked, axis=-1)
-    product = k.sum(pred_norm * true_norm, axis=1)
-    arccos = tensorflow.acos(product)
-    return 2 * arccos / np.pi
-
 
 def build_prosit1_model():
     """
@@ -192,6 +175,7 @@ def build_prosit1_model():
     # Compile model
     model = keras.Model(inputs=[peptides_in, precursor_charge_in, collision_energy_in], outputs=output_layer)
     model.compile(loss='masked_spectral_distance', optimizer='adam', metrics=['accuracy'])
+        # if this doesn't work, explicitly import masked_spectral_distance from losses
 
     save_model(model, 'prosit1', 
         framework = 'keras', 
