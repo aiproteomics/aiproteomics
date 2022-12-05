@@ -2,12 +2,12 @@ import os
 import tf2onnx
 
 def save_model(
-        model, 
-        name,
-        framework = 'keras',
-        output_format = 'onnx',
-        output_dir = './aiproteomics/modelgen/saved_models/',
-        overwrite = True,
+        model: str, 
+        name: str,
+        framework: str = 'keras',
+        output_format: str = 'onnx',
+        output_dir: str = './aiproteomics/modelgen/saved_models/',
+        overwrite: bool = True,
     ):
 
     """Function to save the model.
