@@ -17,9 +17,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = u"aiproteomics"
-copyright = u"2022, Netherlands eScience Center"
-author = u"Robin Richardson"
+project = "aiproteomics"
+copyright = "2022, Netherlands eScience Center"
+author = "Robin Richardson"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
