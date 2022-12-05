@@ -6,7 +6,11 @@ authors:
   -
     family-names: Richardson
     given-names: Robin A
-    orcid: "https://orcid.org/0000-0002-9984-2720"
+    orcid: "https://orcid.org/0000-0002-9984-2720
+  -
+    family-names: Bodor
+    given-names: Dani L
+    orcid: "https://orcid.org/0000-0003-2109-2349"
   -
     family-names: Pham
     given-names: Thang V
@@ -16,7 +20,7 @@ authors:
 date-released: 20??-MM-DD
 doi: <insert your DOI here>
 version: "0.1.0"
-repository-code: "https://github.com/https://github.com/ai-proteomics/aiproteomics"
+repository-code: "https://github.com/https://github.com/aiproteomics/aiproteomics"
 keywords:
   - machine learning
   - proteomics
