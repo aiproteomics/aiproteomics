@@ -18,6 +18,8 @@ ignore-patterns:
 
 pyroma:
     run: true
+    disable:
+    - PYRUNKNOWN
 
 pycodestyle:
     full: true
