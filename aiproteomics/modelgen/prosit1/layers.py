@@ -1,6 +1,7 @@
 from keras import backend as K
-from keras import regularizers, constraints, initializers
+from keras import constraints, initializers, regularizers
 from tensorflow.keras.layers import Layer
+
 
 class Attention(Layer):
     def __init__( # pylint: disable=too-many-arguments

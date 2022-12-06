@@ -1,6 +1,6 @@
+import keras.backend as k
 import numpy
 import tensorflow
-import keras.backend as k
 
 
 def masked_spectral_distance(true, pred):

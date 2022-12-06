@@ -1,6 +1,5 @@
 from tensorflow import keras
 from tensorflow.keras import layers
-
 from .prosit1.layers import Attention
 from .save_model import save_model
 

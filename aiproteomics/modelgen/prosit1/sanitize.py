@@ -1,8 +1,8 @@
-import numpy
 import functools
-from .constants import MAX_SEQUENCE, ION_TYPES, MAX_FRAG_CHARGE
-from . import losses
+import numpy
 import tensorflow
+from . import losses
+from .constants import ION_TYPES, MAX_FRAG_CHARGE, MAX_SEQUENCE
 
 
 def reshape_dims(array):
