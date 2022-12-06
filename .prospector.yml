@@ -12,6 +12,9 @@ member-warnings: false
 ignore-paths:
   - docs
 
+ignore-patterns:
+  - __init__.py
+
 pyroma:
     run: true
 
