@@ -5,7 +5,7 @@ import tf2onnx
 VALID_OUTPUT_FORMATS = ['onnx', 'keras']
 
 
-def save_model(
+def save_model( # pylint: disable=too-many-arguments
         model: str, 
         name: str,
         framework: str = 'keras',

@@ -21,7 +21,7 @@ def positional_encoding(position, d_model):
 
     pos_encoding = angle_rads[np.newaxis, ...]
 
-    return tf.cast(pos_encoding, dtype=tf.float32)
+    return tf.cast(pos_encoding, dtype=tf.float32) # pylint: disable= no-value-for-parameter, unexpected-keyword-arg
 
 
 # Masking
@@ -140,7 +140,15 @@ def point_wise_feed_forward_network(d_model, dff):
     )
 
 
-def build_rt_transformer_model(num_layers, d_model, num_heads, d_ff, dropout_rate, vocab_size, max_len):
+def build_rt_transformer_model( # pylint: disable=too-many-arguments
+        num_layers, 
+        d_model, 
+        num_heads, 
+        d_ff, 
+        dropout_rate, 
+        vocab_size, 
+        max_len,
+    ):
 
     coded_input = tf.keras.layers.Input(shape=(max_len,), name='input')
 
@@ -189,7 +197,7 @@ class EncoderLayer(tf.keras.layers.Layer):
 
 # Encoder
 class EncoderBlock(tf.keras.layers.Layer):
-    def __init__(
+    def __init__( # pylint: disable=too-many-arguments
         self,
         num_layers,
         #d_embedding,

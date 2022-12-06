@@ -5,7 +5,7 @@ from .prosit1.layers import Attention
 from .save_model import save_model
 
 
-def build_prosit1_model():
+def build_prosit1_model(): # pylint: disable=too-many-locals
     """
     Creates the Prosit model:
         Gessulat, S., Schmidt, T., Zolg, D.P. et al.
@@ -184,4 +184,4 @@ def build_prosit1_model():
 
 
 if __name__ == "__main__":
-    build_prosit1_model(save_format='onnx')
+    build_prosit1_model(save_format='onnx') # pylint: disable=unexpected-keyword-arg

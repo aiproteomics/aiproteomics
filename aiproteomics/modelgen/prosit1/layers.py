@@ -3,7 +3,7 @@ from keras import regularizers, constraints, initializers
 from tensorflow.keras.layers import Layer
 
 class Attention(Layer):
-    def __init__(
+    def __init__( # pylint: disable=too-many-arguments
         self,
         context=False,
         W_regularizer=None,

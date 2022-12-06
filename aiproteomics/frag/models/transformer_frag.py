@@ -29,7 +29,7 @@ def positional_encoding(position, d_model):
 
     pos_encoding = angle_rads[np.newaxis, ...]
 
-    return tf.cast(pos_encoding, dtype=tf.float32)
+    return tf.cast(pos_encoding, dtype=tf.float32) # pylint: disable= no-value-for-parameter, unexpected-keyword-arg
 
 
 # Masking
@@ -182,7 +182,7 @@ class EncoderLayer(tf.keras.layers.Layer):
 
 # Encoder
 class EncoderBlock(tf.keras.layers.Layer):
-    def __init__(
+    def __init__( # pylint: disable=too-many-arguments
         self,
         num_layers,
         #d_embedding,
@@ -270,7 +270,15 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
 
 
-def build_frag_transformer_model(num_layers, d_model, num_heads, d_ff, dropout_rate, vocab_size, max_len):
+def build_frag_transformer_model( # pylint: disable=too-many-arguments, too-many-locals
+        num_layers, 
+        d_model, 
+        num_heads, 
+        d_ff, 
+        dropout_rate, 
+        vocab_size, 
+        max_len,
+    ):
 
     # Transformer branch (peptide input)
     peptides_in = tf.keras.layers.Input(shape=(max_len,), name='peptides_in')
