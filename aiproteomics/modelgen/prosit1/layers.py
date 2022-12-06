@@ -59,10 +59,10 @@ class Attention(Layer):
 
         self.built = True
 
-    def compute_mask(self, input, input_mask=None):
+    def compute_mask(self, input, input_mask=None): # pylint: disable=arguments-renamed, redefined-builtin, unused-argument
         return None
 
-    def call(self, x, mask=None):
+    def call(self, x, mask=None): # pylint: disable=arguments-differ
         a = K.squeeze(K.dot(x, K.expand_dims(self.W)), axis=-1)
         if self.bias:
             a += self.b
