@@ -2,6 +2,7 @@ import numpy
 import functools
 from .constants import MAX_SEQUENCE, ION_TYPES, MAX_FRAG_CHARGE
 from . import losses
+import tensorflow
 
 
 def reshape_dims(array):
@@ -47,8 +48,6 @@ def mask_outofcharge(array, charges, mask=-1.0):
 
 
 def get_spectral_angle(true, pred, batch_size=600):
-    import tensorflow
-
     n = true.shape[0]
     sa = numpy.zeros([n])
 

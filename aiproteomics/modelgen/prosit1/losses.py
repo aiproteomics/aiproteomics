@@ -1,10 +1,10 @@
 import numpy
+import tensorflow
+import keras.backend as k
 
 
 def masked_spectral_distance(true, pred):
     # Note, fragment ions that cannot exists (i.e. y20 for a 7mer) must have the value  -1.
-    import tensorflow
-    import keras.backend as k
 
     epsilon = k.epsilon()
     pred_masked = ((true + 1) * pred) / (true + 1 + epsilon)
@@ -22,5 +22,4 @@ losses = {"masked_spectral_distance": masked_spectral_distance}
 def get(loss_name):
     if loss_name in losses:
         return losses[loss_name]
-    else:
-        return loss_name
+    return loss_name

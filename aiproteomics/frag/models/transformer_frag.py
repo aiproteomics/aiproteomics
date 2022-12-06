@@ -3,15 +3,12 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-#from layers import Attention
-#import sanitize
 
-"""
-Uses the last part of the Prosit model on the end of the first part of the RT transformer:
-    Gessulat, S., Schmidt, T., Zolg, D.P. et al. 
-    Prosit: proteome-wide prediction of peptide tandem mass spectra by deep learning. 
-    Nat Methods 16, 509–518 (2019). https://doi.org/10.1038/s41592-019-0426-7.
-"""
+# Uses the last part of the Prosit model on the end of the first part of the RT transformer:
+# Gessulat, S., Schmidt, T., Zolg, D.P. et al. 
+# Prosit: proteome-wide prediction of peptide tandem mass spectra by deep learning. 
+# Nat Methods 16, 509–518 (2019). https://doi.org/10.1038/s41592-019-0426-7.
+
 
 def get_angles(pos, i, d_model):
     angle_rates = 1 / np.power(10000, (2 * (i // 2)) / np.float32(d_model))
