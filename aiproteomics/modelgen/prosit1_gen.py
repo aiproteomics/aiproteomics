@@ -184,4 +184,4 @@ def build_prosit1_model(): # pylint: disable=too-many-locals
 
 
 if __name__ == "__main__":
-    build_prosit1_model(save_format='onnx') # pylint: disable=unexpected-keyword-arg
+    build_prosit1_model()
