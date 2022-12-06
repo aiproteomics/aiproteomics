@@ -178,7 +178,7 @@ def build_prosit1_model(): # pylint: disable=too-many-locals
 
     save_model(model, 'prosit1', 
         framework = 'keras', 
-        output_format = 'onnx',
+        output_formats = 'onnx',
         overwrite = True)
     return model
 

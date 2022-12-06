@@ -6,7 +6,7 @@ import tensorflow
 
 
 def reshape_dims(array):
-    n, dims = array.shape
+    _, dims = array.shape
     assert dims == 174
     nlosses = 1
     print(array.shape[0], MAX_SEQUENCE - 1, len(ION_TYPES), nlosses, MAX_FRAG_CHARGE)

@@ -2,14 +2,14 @@ import os
 import tf2onnx
 
 
-VALID_OUTPUT_FORMATS = ['onnx', 'keras']
+VALID_output_formatsS = ['onnx', 'keras']
 
 
 def save_model( # pylint: disable=too-many-arguments
         model: str, 
         name: str,
         framework: str = 'keras',
-        output_format: str = 'onnx',
+        output_formats: str = 'onnx',
         output_dir: str = './aiproteomics/modelgen/saved_models/',
         overwrite: bool = True,
     ):
@@ -24,7 +24,7 @@ def save_model( # pylint: disable=too-many-arguments
         framework (str): the framework used to generated the model.
             Currently only keras is implemented.
 
-        output_format (list or str): format or list of formats to save the model as.
+        output_formats (list or str): format or list of formats to save the model as.
             Currently only 'onnx' and 'keras' are implemented.
             Defaults to 'onnx'.
 
@@ -36,16 +36,16 @@ def save_model( # pylint: disable=too-many-arguments
     """
 
     # Check save formats    
-    invalid_output_formats = []
-    if not isinstance(output_format, list):
-        output_format = [output_format]
-    for format in output_format:
-        if format not in VALID_OUTPUT_FORMATS:
-            invalid_output_formats.append(format)
-        if invalid_output_formats:
+    invalid_output_formatss = []
+    if not isinstance(output_formats, list):
+        output_formats = [output_formats]
+    for output_format in output_formats:
+        if output_format not in VALID_output_formatsS:
+            invalid_output_formatss.append(output_format)
+        if invalid_output_formatss:
             raise ValueError(
-                f'Invalid output_format given ({invalid_output_formats}).\n'
-                f'Select valid output_format from {VALID_OUTPUT_FORMATS}.'
+                f'Invalid output_formats given ({invalid_output_formatss}).\n'
+                f'Select valid output_formats from {VALID_output_formatsS}.'
             )
 
     if not os.path.exists(output_dir):
@@ -53,7 +53,7 @@ def save_model( # pylint: disable=too-many-arguments
 
     # Save model
     if framework == 'keras':
-        if 'onnx' in output_format:
+        if 'onnx' in output_formats:
             # using default opset and spec settings for now, 
             # might need to be hardcoded if it doesn't work for all cases in the future            
             # for some idea on how to set this, see example on https://github.com/onnx/tensorflow-onnx/blob/main/tutorials/keras-resnet50.ipynb
@@ -61,7 +61,7 @@ def save_model( # pylint: disable=too-many-arguments
             if not overwrite:
                 output_path = update_path(output_path)
             tf2onnx.convert.from_keras(model, output_path=output_path)
-        if 'keras' in output_format:
+        if 'keras' in output_formats:
             model.save(output_dir + name)
     else:
         raise NotImplementedError(
