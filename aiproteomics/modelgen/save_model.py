@@ -2,7 +2,7 @@ import os
 import tf2onnx
 
 
-VALID_output_formatsS = ['onnx', 'keras']
+VALID_OUTPUT_FORMATS = ['onnx', 'keras']
 
 
 def save_model( # pylint: disable=too-many-arguments
@@ -40,12 +40,12 @@ def save_model( # pylint: disable=too-many-arguments
     if not isinstance(output_formats, list):
         output_formats = [output_formats]
     for output_format in output_formats:
-        if output_format not in VALID_output_formatsS:
+        if output_format not in VALID_OUTPUT_FORMATS:
             invalid_output_formatss.append(output_format)
         if invalid_output_formatss:
             raise ValueError(
                 f'Invalid output_formats given ({invalid_output_formatss}).\n'
-                f'Select valid output_formats from {VALID_output_formatsS}.'
+                f'Select valid output_formats from {VALID_OUTPUT_FORMATS}.'
             )
 
     if not os.path.exists(output_dir):
