@@ -1,6 +1,6 @@
 import numpy
 import functools
-from .constants import *
+from .constants import MAX_SEQUENCE, ION_TYPES, MAX_FRAG_CHARGE
 from . import losses
 
 
