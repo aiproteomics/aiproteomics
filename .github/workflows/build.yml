@@ -63,7 +63,7 @@ jobs:
       - name: Check style against standards using prospector
         run: prospector
       - name: Check import order
-        run: isort --check-only aiproteomics --diff
+        run: isort --check-only aiproteomics --diff --force-single-line-imports
 
   sonarcloud:
     name: SonarCloud

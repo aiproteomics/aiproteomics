@@ -1,5 +1,7 @@
 from keras import backend as K
-from keras import constraints, initializers, regularizers
+from keras import constraints
+from keras import initializers
+from keras import regularizers
 from tensorflow.keras.layers import Layer
 
 
