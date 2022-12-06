@@ -26,7 +26,7 @@ class Attention(Layer):
         self.u_constraint = constraints.get(u_constraint)
         self.bias = bias
         self.context = context
-        super(Attention, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def build(self, input_shape):
         assert len(input_shape) == 3
@@ -91,5 +91,5 @@ class Attention(Layer):
             "b_constraint": constraints.serialize(self.b_constraint),
             "u_constraint": constraints.serialize(self.u_constraint),
         }
-        base_config = super(Attention, self).get_config()
+        base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

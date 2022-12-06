@@ -86,7 +86,7 @@ def scaled_dot_product_attention(q, k, v, mask):
 # Multi-head attention
 class multi_head_attention(tf.keras.layers.Layer):
     def __init__(self, d_model, num_heads):
-        super(multi_head_attention, self).__init__()
+        super().__init__()
         self.num_heads = num_heads
         self.d_model = d_model
 
@@ -153,7 +153,7 @@ def point_wise_feed_forward_network(d_model, dff):
 # Encoder and decoder
 class EncoderLayer(tf.keras.layers.Layer):
     def __init__(self, d_model, num_heads, dff, rate=0.1):
-        super(EncoderLayer, self).__init__()
+        super().__init__()
 
         self.mha = multi_head_attention(d_model, num_heads)
         self.ffn = point_wise_feed_forward_network(d_model, dff)
@@ -193,7 +193,7 @@ class EncoderBlock(tf.keras.layers.Layer):
         maximum_position_encoding,
         rate=0.1,
     ):
-        super(EncoderBlock, self).__init__()
+        super().__init__()
 
         self.d_model = d_model
         self.num_layers = num_layers
@@ -254,7 +254,7 @@ class EncoderBlock(tf.keras.layers.Layer):
 
 class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     def __init__(self, d_model, warmup_steps=4000):
-        super(CustomSchedule, self).__init__()
+        super().__init__()
 
         self.d_model = d_model
         self.d_model = tf.cast(self.d_model, tf.float32)
