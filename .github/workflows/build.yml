@@ -62,8 +62,6 @@ jobs:
           python3 -m pip install .[dev,publishing]
       - name: Check style against standards using prospector
         run: prospector
-      - name: Check import order
-        run: isort --check-only aiproteomics --diff --force-single-line-imports
 
   sonarcloud:
     name: SonarCloud
