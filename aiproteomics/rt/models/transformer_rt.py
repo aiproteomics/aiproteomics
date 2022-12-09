@@ -1,5 +1,5 @@
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
 
 def get_angles(pos, i, d_model):
@@ -21,7 +21,7 @@ def positional_encoding(position, d_model):
 
     pos_encoding = angle_rads[np.newaxis, ...]
 
-    return tf.cast(pos_encoding, dtype=tf.float32)
+    return tf.cast(pos_encoding, dtype=tf.float32) # pylint: disable= no-value-for-parameter, unexpected-keyword-arg
 
 
 # Masking
@@ -78,7 +78,7 @@ def scaled_dot_product_attention(q, k, v, mask):
 # Multi-head attention
 class multi_head_attention(tf.keras.layers.Layer):
     def __init__(self, d_model, num_heads):
-        super(multi_head_attention, self).__init__()
+        super().__init__()
         self.num_heads = num_heads
         self.d_model = d_model
 
@@ -140,7 +140,15 @@ def point_wise_feed_forward_network(d_model, dff):
     )
 
 
-def build_rt_transformer_model(num_layers, d_model, num_heads, d_ff, dropout_rate, vocab_size, max_len):
+def build_rt_transformer_model( # pylint: disable=too-many-arguments
+        num_layers, 
+        d_model, 
+        num_heads, 
+        d_ff, 
+        dropout_rate, 
+        vocab_size, 
+        max_len,
+    ):
 
     coded_input = tf.keras.layers.Input(shape=(max_len,), name='input')
 
@@ -160,7 +168,7 @@ def build_rt_transformer_model(num_layers, d_model, num_heads, d_ff, dropout_rat
 # Encoder and decoder
 class EncoderLayer(tf.keras.layers.Layer):
     def __init__(self, d_model, num_heads, dff, rate=0.1):
-        super(EncoderLayer, self).__init__()
+        super().__init__()
 
         self.mha = multi_head_attention(d_model, num_heads)
         self.ffn = point_wise_feed_forward_network(d_model, dff)
@@ -189,7 +197,7 @@ class EncoderLayer(tf.keras.layers.Layer):
 
 # Encoder
 class EncoderBlock(tf.keras.layers.Layer):
-    def __init__(
+    def __init__( # pylint: disable=too-many-arguments
         self,
         num_layers,
         #d_embedding,
@@ -200,7 +208,7 @@ class EncoderBlock(tf.keras.layers.Layer):
         maximum_position_encoding,
         rate=0.1,
     ):
-        super(EncoderBlock, self).__init__()
+        super().__init__()
 
         self.d_model = d_model
         self.num_layers = num_layers
@@ -261,7 +269,7 @@ class EncoderBlock(tf.keras.layers.Layer):
 
 class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     def __init__(self, d_model, warmup_steps=4000):
-        super(CustomSchedule, self).__init__()
+        super().__init__()
 
         self.d_model = d_model
         self.d_model = tf.cast(self.d_model, tf.float32)
@@ -273,5 +281,3 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
         arg2 = step * (self.warmup_steps ** -1.5)
 
         return tf.math.rsqrt(self.d_model) * tf.math.minimum(arg1, arg2)
-
-

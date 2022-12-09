@@ -11,9 +11,15 @@ member-warnings: false
 
 ignore-paths:
   - docs
+  - build
+
+ignore-patterns:
+  - __init__.py
 
 pyroma:
     run: true
+    disable:
+    - PYRUNKNOWN
 
 pycodestyle:
     full: true

@@ -1,12 +1,10 @@
-import numpy as np
 from tensorflow import keras
 from tensorflow.keras import layers
-
 from .prosit1.layers import Attention
 from .save_model import save_model
 
 
-def build_prosit1_model():
+def build_prosit1_model(): # pylint: disable=too-many-locals
     """
     Creates the Prosit model:
         Gessulat, S., Schmidt, T., Zolg, D.P. et al.
@@ -173,16 +171,16 @@ def build_prosit1_model():
     output_layer = layers.Flatten(name='out', data_format='channels_last', trainable=True)(activation)
 
     # Compile model
+    # if this doesn't work, explicitly import masked_spectral_distance from losses
     model = keras.Model(inputs=[peptides_in, precursor_charge_in, collision_energy_in], outputs=output_layer)
     model.compile(loss='masked_spectral_distance', optimizer='adam', metrics=['accuracy'])
-        # if this doesn't work, explicitly import masked_spectral_distance from losses
 
     save_model(model, 'prosit1', 
         framework = 'keras', 
-        output_format = 'onnx',
+        output_formats = 'onnx',
         overwrite = True)
     return model
 
 
 if __name__ == "__main__":
-    build_prosit1_model(save_format='onnx')
+    build_prosit1_model()

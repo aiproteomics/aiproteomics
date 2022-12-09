@@ -1,9 +1,10 @@
 from keras import backend as K
-from keras import regularizers, constraints, initializers, activations
+from keras import constraints, initializers, regularizers
 from tensorflow.keras.layers import Layer
 
+
 class Attention(Layer):
-    def __init__(
+    def __init__( # pylint: disable=too-many-arguments
         self,
         context=False,
         W_regularizer=None,
@@ -26,7 +27,7 @@ class Attention(Layer):
         self.u_constraint = constraints.get(u_constraint)
         self.bias = bias
         self.context = context
-        super(Attention, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def build(self, input_shape):
         assert len(input_shape) == 3
@@ -59,10 +60,10 @@ class Attention(Layer):
 
         self.built = True
 
-    def compute_mask(self, input, input_mask=None):
+    def compute_mask(self, input, input_mask=None): # pylint: disable=arguments-renamed, redefined-builtin, unused-argument
         return None
 
-    def call(self, x, mask=None):
+    def call(self, x, mask=None): # pylint: disable=arguments-differ
         a = K.squeeze(K.dot(x, K.expand_dims(self.W)), axis=-1)
         if self.bias:
             a += self.b
@@ -91,5 +92,5 @@ class Attention(Layer):
             "b_constraint": constraints.serialize(self.b_constraint),
             "u_constraint": constraints.serialize(self.u_constraint),
         }
-        base_config = super(Attention, self).get_config()
+        base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

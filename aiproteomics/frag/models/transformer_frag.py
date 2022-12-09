@@ -1,16 +1,14 @@
 import numpy as np
 import tensorflow as tf
-import h5py
 from tensorflow import keras
 from tensorflow.keras import layers
-from keras.utils.vis_utils import plot_model
 
-#from layers import Attention
-#import sanitize
 
-"""
-Uses the last part of the Prosit model (Gessulat, S., Schmidt, T., Zolg, D.P. et al. Prosit: proteome-wide prediction of peptide tandem mass spectra by deep learning. Nat Methods 16, 509–518 (2019). https://doi.org/10.1038/s41592-019-0426-7), on the end of the first part of the RT transformer.
-"""
+# Uses the last part of the Prosit model on the end of the first part of the RT transformer:
+# Gessulat, S., Schmidt, T., Zolg, D.P. et al. 
+# Prosit: proteome-wide prediction of peptide tandem mass spectra by deep learning. 
+# Nat Methods 16, 509–518 (2019). https://doi.org/10.1038/s41592-019-0426-7.
+
 
 def get_angles(pos, i, d_model):
     angle_rates = 1 / np.power(10000, (2 * (i // 2)) / np.float32(d_model))
@@ -31,7 +29,7 @@ def positional_encoding(position, d_model):
 
     pos_encoding = angle_rads[np.newaxis, ...]
 
-    return tf.cast(pos_encoding, dtype=tf.float32)
+    return tf.cast(pos_encoding, dtype=tf.float32) # pylint: disable= no-value-for-parameter, unexpected-keyword-arg
 
 
 # Masking
@@ -88,7 +86,7 @@ def scaled_dot_product_attention(q, k, v, mask):
 # Multi-head attention
 class multi_head_attention(tf.keras.layers.Layer):
     def __init__(self, d_model, num_heads):
-        super(multi_head_attention, self).__init__()
+        super().__init__()
         self.num_heads = num_heads
         self.d_model = d_model
 
@@ -155,7 +153,7 @@ def point_wise_feed_forward_network(d_model, dff):
 # Encoder and decoder
 class EncoderLayer(tf.keras.layers.Layer):
     def __init__(self, d_model, num_heads, dff, rate=0.1):
-        super(EncoderLayer, self).__init__()
+        super().__init__()
 
         self.mha = multi_head_attention(d_model, num_heads)
         self.ffn = point_wise_feed_forward_network(d_model, dff)
@@ -184,7 +182,7 @@ class EncoderLayer(tf.keras.layers.Layer):
 
 # Encoder
 class EncoderBlock(tf.keras.layers.Layer):
-    def __init__(
+    def __init__( # pylint: disable=too-many-arguments
         self,
         num_layers,
         #d_embedding,
@@ -195,7 +193,7 @@ class EncoderBlock(tf.keras.layers.Layer):
         maximum_position_encoding,
         rate=0.1,
     ):
-        super(EncoderBlock, self).__init__()
+        super().__init__()
 
         self.d_model = d_model
         self.num_layers = num_layers
@@ -256,7 +254,7 @@ class EncoderBlock(tf.keras.layers.Layer):
 
 class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     def __init__(self, d_model, warmup_steps=4000):
-        super(CustomSchedule, self).__init__()
+        super().__init__()
 
         self.d_model = d_model
         self.d_model = tf.cast(self.d_model, tf.float32)
@@ -272,7 +270,15 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
 
 
-def build_frag_transformer_model(num_layers, d_model, num_heads, d_ff, dropout_rate, vocab_size, max_len):
+def build_frag_transformer_model( # pylint: disable=too-many-arguments, too-many-locals
+        num_layers, 
+        d_model, 
+        num_heads, 
+        d_ff, 
+        dropout_rate, 
+        vocab_size, 
+        max_len,
+    ):
 
     # Transformer branch (peptide input)
     peptides_in = tf.keras.layers.Input(shape=(max_len,), name='peptides_in')
