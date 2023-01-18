@@ -105,29 +105,3 @@ def get_mz_applied(df, ion_types="yb"):
     if len(out.shape) == 4:
         out = out.reshape([1] + list(out.shape))
     return out
-
-
-def csv(df):
-    df.reset_index(drop=True, inplace=True)
-    assert "modified_sequence" in df.columns
-    assert "collision_energy" in df.columns
-    assert "precursor_charge" in df.columns
-    data = {
-        "collision_energy_aligned_normed": get_numbers(df.collision_energy) / 100.0,
-        "sequence_integer": get_sequence_integer(df.modified_sequence),
-        "precursor_charge_onehot": get_precursor_charge_onehot(df.precursor_charge)
-    }
-    nlosses = 1
-    z = 3
-
-    # Calculate length of each (integer) peptide sequence
-    lengths = (data["sequence_integer"] > 0).sum(1)
-
-    masses_pred = get_mz_applied(df)
-    masses_pred = sanitize.cap(masses_pred, nlosses, z)
-    masses_pred = sanitize.mask_outofrange(masses_pred, lengths)
-    masses_pred = sanitize.mask_outofcharge(masses_pred, df.precursor_charge)
-    masses_pred = sanitize.reshape_flat(masses_pred)
-    data["masses_pred"] = masses_pred
-
-    return data

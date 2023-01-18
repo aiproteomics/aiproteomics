@@ -30,10 +30,12 @@ def _read_peptides_csv(fname):
         "collision_energy_aligned_normed": tensorize.get_numbers(df.collision_energy) / 100.0,
         "sequence_integer": tensorize.get_sequence_integer(df.modified_sequence),
         "precursor_charge_onehot": tensorize.get_precursor_charge_onehot(df.precursor_charge),
-        "masses_pred": tensorize.get_mz_applied(df),
     }
+
     nlosses = 1
     z = 3
+
+    # Calculate length of each (integer) peptide sequence
     lengths = (data["sequence_integer"] > 0).sum(1)
 
     masses_pred = tensorize.get_mz_applied(df)
