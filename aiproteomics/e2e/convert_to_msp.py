@@ -122,7 +122,7 @@ class Converter():
                 sel = np.where(aIntensity > 0)
                 aIntensity = aIntensity[sel]
                 collision_energy = self.data["collision_energy_aligned_normed"][i] * 100
-                iRT = self.data["iRT"][i]
+                iRT = np.squeeze(self.data["iRT"][i])
                 aMass = self.data["masses_pred"][i][sel]
                 precursor_charge = self.data["precursor_charge_onehot"][i].argmax() + 1
                 sequence_integer = self.data["sequence_integer"][i]
@@ -173,7 +173,8 @@ class Spectrum(object):
     def __str__(self):
         s = "Name: {sequence}/{charge}\nMW: {precursor_mass}\n"
         s += "Comment: Parent={precursor_mass} Collision_energy={collision_energy} "
-        s += "Mods={mod} ModString={sequence}//{mod_string}/{charge}"
+        s += "Mods={mod} ModString={sequence}//{mod_string}/{charge} "
+        s += "iRT={iRT}"
         s += "\nNum peaks: {num_peaks}"
         num_peaks = len(self.aIntensity)
         s = s.format(
@@ -183,6 +184,7 @@ class Spectrum(object):
             collision_energy=np.round(self.collision_energy[0], 0),
             mod=self.mod,
             mod_string=self.mod_string,
+            iRT=self.iRT,
             num_peaks=num_peaks,
         )
         for mz, intensity, ion in zip(self.aMass, self.aIntensity, self.aIons):
