@@ -9,7 +9,7 @@ def _predict(data, model_frag, model_irt, batch_size_frag=None, batch_size_iRT=N
     x = [data['sequence_integer'], data['precursor_charge_onehot'], data['collision_energy_aligned_normed']]
     prediction = model_frag.predict(x, verbose=False, batch_size=batch_size_frag)
     data["intensities_pred"] = prediction
-    data = sanitize.prediction(data)
+    data = sanitize.sanitize_prediction_output(data)
 
     # Get iRT model predictions
     x = data['sequence_integer']
@@ -38,10 +38,24 @@ def _read_peptides_csv(fname):
     # Calculate length of each (integer) peptide sequence
     lengths = (data["sequence_integer"] > 0).sum(1)
 
+    # Output shape: (
+    #                 N_sequences,
+    #                 MAX_SEQUENCE - 1 (the max number of ions),
+    #                 NUM ION TYPES (default 2: 'y', 'b'),
+    #                 MAX number of losses (default 3: '', 'H20', 'NH3'),
+    #                 MAX charges (default 6)
+    #               )
     masses_pred = tensorize.get_mz_applied(df)
+
+    # Cap the shape to (:, :, :, nlosses, z)
+    # For example, if nlosses=1 and z=3, then
+    # shape (3, 29, 2, 3, 6) -> (3, 29, 2, 1, 3)
     masses_pred = sanitize.cap(masses_pred, nlosses, z)
+
     masses_pred = sanitize.mask_outofrange(masses_pred, lengths)
     masses_pred = sanitize.mask_outofcharge(masses_pred, df.precursor_charge)
+
+    # Output shape: N_sequences x 174
     masses_pred = sanitize.reshape_flat(masses_pred)
     data["masses_pred"] = masses_pred
 
