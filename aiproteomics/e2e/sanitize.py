@@ -47,7 +47,7 @@ def mask_outofcharge(array, charges, mask=-1.0):
     return array
 
 
-def prediction(data, batch_size=600):
+def sanitize_prediction_output(data, batch_size=600):
     """
     Default prosit output layer is 174, coming from a
     flattening of array with dimensions: 29 x 2 x 1 x 3
