@@ -3,7 +3,7 @@
 
 import numpy
 import functools
-from .constants import *
+from aiproteomics.e2e.constants import *
 
 def reshape_dims(array):
     """

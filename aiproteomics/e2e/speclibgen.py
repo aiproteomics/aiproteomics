@@ -1,8 +1,8 @@
 from . import sanitize
 import pandas as pd
 import numpy as np
-from aiproteomics.e2e import convert_to_msp
-from . import tensorize
+from aiproteomics.e2e import convert_to_msp, tensorize
+from aiproteomics.e2e.constants import MAX_FRAG_CHARGE, MAX_NLOSSES
 
 def _predict(data, model_frag, model_irt, batch_size_frag=None, batch_size_iRT=None, iRT_rescaling_mean=None, iRT_rescaling_var=None):
     # Get fragmentation model predictions
