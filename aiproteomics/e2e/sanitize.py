@@ -81,8 +81,4 @@ def prediction(data, batch_size=600):
 
     data["intensities_pred"] = intensities
 
-    if "intensities_raw" in data:
-        data["spectral_angle"] = get_spectral_angle(
-            data["intensities_raw"], data["intensities_pred"], batch_size=batch_size
-        )
     return data
