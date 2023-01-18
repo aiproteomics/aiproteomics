@@ -10,7 +10,7 @@ def reshape_dims(array):
     n, dims = array.shape
     assert dims == 174
     nlosses = 1
-#    print(array.shape[0], MAX_SEQUENCE - 1, len(ION_TYPES), nlosses, MAX_FRAG_CHARGE)
+
     return array.reshape(
         [array.shape[0], MAX_SEQUENCE - 1, len(ION_TYPES), nlosses, MAX_FRAG_CHARGE]
     )
@@ -84,26 +84,12 @@ def prediction(data, batch_size=600):
     intensities = data["intensities_pred"]
     charges = list(data["precursor_charge_onehot"].argmax(axis=1) + 1)
 
-#    print("charges", list(charges))
-
     intensities[intensities < 0] = 0
-
-#    print('zeroing', list(intensities))
-
     intensities = normalize_base_peak(intensities)
-#    print('normalize_base_peak', intensities)
-
     intensities = reshape_dims(intensities)
-#    print('reshape_dims', intensities)
-
     intensities = mask_outofrange(intensities, sequence_lengths)
-#    print('mask_outofrange', intensities)
-
     intensities = mask_outofcharge(intensities, charges)
-#    print('mask_outofcharge', intensities)
-
     intensities = reshape_flat(intensities)
-#    print('reshape_flat', intensities)
 
     data["intensities_pred"] = intensities
 
