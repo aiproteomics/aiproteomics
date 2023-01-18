@@ -48,6 +48,18 @@ def mask_outofcharge(array, charges, mask=-1.0):
 
 
 def prediction(data, batch_size=600):
+    """
+    Default prosit output layer is 174, coming from a
+    flattening of array with dimensions: 29 x 2 x 1 x 3
+
+    This comes from:
+    * Max number of ions = MAX_SEQUENCE_LENGTH - 1 = 30 - 1 = 29
+    * Number of ion types = 2 ('y' and 'b')
+    * nlosses (nothing, H2O or NH3) capped at 1
+    * charges (max of 6) capped at 3
+
+    """
+
     assert "sequence_integer" in data
     assert "intensities_pred" in data
     assert "precursor_charge_onehot" in data
@@ -56,11 +68,15 @@ def prediction(data, batch_size=600):
     intensities = data["intensities_pred"]
     charges = list(data["precursor_charge_onehot"].argmax(axis=1) + 1)
 
+    # Set all negative intensities to zero
     intensities[intensities < 0] = 0
+
     intensities = normalize_base_peak(intensities)
     intensities = reshape_dims(intensities)
     intensities = mask_outofrange(intensities, sequence_lengths)
     intensities = mask_outofcharge(intensities, charges)
+
+    # Shape = N_sequences x 174
     intensities = reshape_flat(intensities)
 
     data["intensities_pred"] = intensities
