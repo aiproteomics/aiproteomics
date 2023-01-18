@@ -34,11 +34,30 @@ def stack(queue):
 
 
 def get_numbers(vals, dtype=float):
+    """
+    Takes input list and converts values to specified numpy dtype.
+    Outputs numpy array in "column format", i.e.
+        If input looks like:
+            [35, 30, 30],
+        Output looks like:
+            array([[35.],
+            [30.],
+            [30.]])
+    """
     a = np.array(vals).astype(dtype)
     return a.reshape([len(vals), 1])
 
 
 def get_precursor_charge_onehot(charges):
+    """
+    Input:
+        charges: int
+    Output:
+        onehot encoded array of length max(CHARGES)
+    Example:
+        If charges=3, and the max charge number is 6, then
+        the output will be [0, 0, 1, 0, 0, 0]
+    """
     array = np.zeros([len(charges), max(CHARGES)], dtype=int)
     for i, precursor_charge in enumerate(charges):
         array[i, precursor_charge - 1] = 1
@@ -46,6 +65,10 @@ def get_precursor_charge_onehot(charges):
 
 
 def get_sequence_integer(sequences):
+    """
+    Takes modified sequence (string) as input. For example, "MMPAAALIM(ox)R"
+    Maps it to an array of integers, according to the prosit alphabet.
+    """
     array = np.zeros([len(sequences), MAX_SEQUENCE], dtype=int)
     for i, sequence in enumerate(sequences):
         for j, s in enumerate(utils.peptide_parser(sequence)):
@@ -97,6 +120,8 @@ def csv(df):
     }
     nlosses = 1
     z = 3
+
+    # Calculate length of each (integer) peptide sequence
     lengths = (data["sequence_integer"] > 0).sum(1)
 
     masses_pred = get_mz_applied(df)
