@@ -32,8 +32,8 @@ def _read_peptides_csv(fname):
         "precursor_charge_onehot": tensorize.get_precursor_charge_onehot(df.precursor_charge),
     }
 
-    nlosses = 1
-    z = 3
+    nlosses = 1 # Cap for neutral losses?
+    z = 3 # Cap for fragment charge
 
     # Calculate length of each (integer) peptide sequence
     lengths = (data["sequence_integer"] > 0).sum(1)
@@ -43,11 +43,11 @@ def _read_peptides_csv(fname):
     #                 MAX_SEQUENCE - 1 (the max number of ions),
     #                 NUM ION TYPES (default 2: 'y', 'b'),
     #                 MAX number of losses (default 3: '', 'H20', 'NH3'),
-    #                 MAX charges (default 6)
+    #                 MAX FRAGMENT CHARGE (default 6)
     #               )
     masses_pred = tensorize.get_mz_applied(df)
 
-    # Cap the shape to (:, :, :, nlosses, z)
+    # Caps the shape to (:, :, :, nlosses, z)
     # For example, if nlosses=1 and z=3, then
     # shape (3, 29, 2, 3, 6) -> (3, 29, 2, 1, 3)
     masses_pred = sanitize.cap(masses_pred, nlosses, z)
@@ -63,6 +63,29 @@ def _read_peptides_csv(fname):
 
 
 def csv_to_msp(in_csv_fname, out_msp_fname, model_frag, model_irt, batch_size_frag, batch_size_iRT, iRT_rescaling_mean, iRT_rescaling_var):
+    """
+    Outputs spectral library in msp format, for the peptide sequence list in the provided csv file
+
+    Input:
+        in_csv_fname: string
+                      Path to a csv formatted file containing a list of (modified) peptide
+                      sequences, collision energies and precursor charges.
+                      For example:
+                          modified_sequence,collision_energy,precursor_charge
+                          MMPAAALIM(ox)R,35,3
+                          MLAPPPIM(ox)K,30,2
+                          MRALLLIPPPPM(ox)R,30,6
+        out_msp_fname: string
+                       Name of the (msp format) spectral library file that output should be
+                       written to.
+        model_frag: tensor flow model
+                    The fragmentation model (prosit-like) to use for spectra prediction
+        model_irt: tensor flow model
+                   The normalized retention time model to use for prediction
+
+
+    """
+
     data = _read_peptides_csv(in_csv_fname)
     data = _predict(data,
                model_frag,
