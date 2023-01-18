@@ -4,7 +4,6 @@
 import numpy
 import functools
 from .constants import *
-#import losses
 
 def reshape_dims(array):
     n, dims = array.shape
@@ -46,33 +45,6 @@ def mask_outofcharge(array, charges, mask=-1.0):
         if charges[i] < 3:
             array[i, :, :, :, charges[i] :] = mask
     return array
-
-
-def get_spectral_angle(true, pred, batch_size=600):
-    import tensorflow.compat.v1 as tfold
-
-    n = true.shape[0]
-    sa = numpy.zeros([n])
-
-    def iterate():
-        if n > batch_size:
-            for i in range(n // batch_size):
-                true_sample = true[i * batch_size : (i + 1) * batch_size]
-                pred_sample = pred[i * batch_size : (i + 1) * batch_size]
-                yield i, true_sample, pred_sample
-            i = n // batch_size
-            yield i, true[(i) * batch_size :], pred[(i) * batch_size :]
-        else:
-            yield 0, true, pred
-
-    for i, t_b, p_b in iterate():
-        tfold.compat.v1.reset_default_graph()
-        with tfold.Session() as s:
-            sa_graph = losses.masked_spectral_distance(t_b, p_b)
-            sa_b = 1 - s.run(sa_graph)
-            sa[i * batch_size : i * batch_size + sa_b.shape[0]] = sa_b
-    sa = numpy.nan_to_num(sa)
-    return sa
 
 
 def prediction(data, batch_size=600):
