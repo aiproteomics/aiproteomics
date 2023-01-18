@@ -115,8 +115,7 @@ def csv(df):
     data = {
         "collision_energy_aligned_normed": get_numbers(df.collision_energy) / 100.0,
         "sequence_integer": get_sequence_integer(df.modified_sequence),
-        "precursor_charge_onehot": get_precursor_charge_onehot(df.precursor_charge),
-        "masses_pred": get_mz_applied(df),
+        "precursor_charge_onehot": get_precursor_charge_onehot(df.precursor_charge)
     }
     nlosses = 1
     z = 3
