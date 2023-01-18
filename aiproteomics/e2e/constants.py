@@ -33,6 +33,7 @@ MAX_SEQUENCE = 30
 MAX_ION = MAX_SEQUENCE - 1
 ION_TYPES = ["y", "b"]
 NLOSSES = ["", "H2O", "NH3"]
+MAX_NLOSSES = 1
 
 FORWARD = {"a", "b", "c"}
 BACKWARD = {"x", "y", "z"}

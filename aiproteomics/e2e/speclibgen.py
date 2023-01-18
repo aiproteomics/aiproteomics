@@ -32,9 +32,6 @@ def _read_peptides_csv(fname):
         "precursor_charge_onehot": tensorize.get_precursor_charge_onehot(df.precursor_charge),
     }
 
-    nlosses = 1 # Cap for neutral losses?
-    z = 3 # Cap for fragment charge
-
     # Calculate length of each (integer) peptide sequence
     lengths = (data["sequence_integer"] > 0).sum(1)
 
@@ -47,11 +44,7 @@ def _read_peptides_csv(fname):
     #               )
     masses_pred = tensorize.get_mz_applied(df)
 
-    # Caps the shape to (:, :, :, nlosses, z)
-    # For example, if nlosses=1 and z=3, then
-    # shape (3, 29, 2, 3, 6) -> (3, 29, 2, 1, 3)
-    masses_pred = sanitize.cap(masses_pred, nlosses, z)
-
+    masses_pred = sanitize.cap(masses_pred, MAX_NLOSSES, MAX_FRAG_CHARGE)
     masses_pred = sanitize.mask_outofrange(masses_pred, lengths)
     masses_pred = sanitize.mask_outofcharge(masses_pred, df.precursor_charge)
 
@@ -92,8 +85,8 @@ def csv_to_msp(in_csv_fname, out_msp_fname, model_frag, model_irt, batch_size_fr
                model_irt,
                batch_size_frag=batch_size_frag,
                batch_size_iRT=batch_size_iRT,
-               iRT_rescaling_mean = iRT_rescaling_mean,
-               iRT_rescaling_var = iRT_rescaling_var
+               iRT_rescaling_mean=iRT_rescaling_mean,
+               iRT_rescaling_var=iRT_rescaling_var
               )
 
     c = convert_to_msp.Converter(data, out_msp_fname)

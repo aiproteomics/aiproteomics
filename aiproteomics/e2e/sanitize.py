@@ -8,16 +8,15 @@ from .constants import *
 def reshape_dims(array):
     """
     "Deflatten" the intensities array (from the size 174 prosit output layer)
-    to the form N_sequences x MAX_SEQUENCE - 1 x len(ION_TYPES) x nlosses x MAX_FRAG_CHARGE
+    to the form N_sequences x MAX_SEQUENCE - 1 x len(ION_TYPES) x MAX_NLOSSES x MAX_FRAG_CHARGE
     For default output layer size 174, this corresponds to the shape:
     N_sequences x 29 x 2 x 1 x 3
     """
     n, dims = array.shape
     assert dims == 174
-    nlosses = 1
 
     return array.reshape(
-        [array.shape[0], MAX_SEQUENCE - 1, len(ION_TYPES), nlosses, MAX_FRAG_CHARGE]
+        [array.shape[0], MAX_SEQUENCE - 1, len(ION_TYPES), MAX_NLOSSES, MAX_FRAG_CHARGE]
     )
 
 
