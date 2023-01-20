@@ -53,6 +53,18 @@ files = [
 ]
 
 [[package]]
+name = "chardet"
+version = "5.1.0"
+description = "Universal encoding detector for Python 3"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "chardet-5.1.0-py3-none-any.whl", hash = "sha256:362777fb014af596ad31334fde1e8c327dfdb076e1960d1694662d46a6917ab9"},
+    {file = "chardet-5.1.0.tar.gz", hash = "sha256:0d62712b956bc154f85fb0a266e2a3c5913c2967e00348701b32411d6def31e5"},
+]
+
+[[package]]
 name = "charset-normalizer"
 version = "3.0.1"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
@@ -701,6 +713,29 @@ files = [
 pyasn1 = ">=0.4.6,<0.5.0"
 
 [[package]]
+name = "pyteomics"
+version = "4.5.6"
+description = "A framework for proteomics data analysis."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyteomics-4.5.6-py2.py3-none-any.whl", hash = "sha256:0e279c085370e8085c84997adb8f9e16425facf2d088ba80f2b7e6bcb59cfebe"},
+    {file = "pyteomics-4.5.6.tar.gz", hash = "sha256:8c6e79068f18d853218967a312c22861422df69fdcf62499a258526f687b126f"},
+]
+
+[package.extras]
+all = ["h5py", "hdf5plugin", "lxml", "matplotlib", "numpy", "pandas", "psims (>v0.1.42)", "pynumpress", "sqlalchemy"]
+df = ["pandas"]
+graphics = ["matplotlib"]
+mzmlb = ["h5py", "hdf5plugin"]
+numpress = ["pynumpress"]
+proforma = ["psims (>v0.1.42)"]
+tda = ["numpy"]
+unimod = ["lxml", "sqlalchemy"]
+xml = ["lxml", "numpy"]
+
+[[package]]
 name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
@@ -1146,4 +1181,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<3.12"
-content-hash = "33018ad754c12a68284669dfccc7e765855f19ee0c2760f32196949cf66c4ae0"
+content-hash = "1f2ef3816a9ca084129a8f7960e28c44dd9c6c79fef3dbe296ead05338b4ddfc"
