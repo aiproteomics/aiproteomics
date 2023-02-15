@@ -1,6 +1,18 @@
 [![RSD](https://img.shields.io/badge/rsd-aiproteomics-00a3e3.svg)](https://www.research-software.nl/software/aiproteomics)
 [![fair-software badge](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu) [![build](https://github.com/aiproteomics/aiproteomics/actions/workflows/build.yml/badge.svg)](https://github.com/aiproteomics/aiproteomics/actions/workflows/build.yml) [![cffconvert](https://github.com/aiproteomics/aiproteomics/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/aiproteomics/aiproteomics/actions/workflows/cffconvert.yml) [![sonarcloud](https://github.com/aiproteomics/aiproteomics/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/aiproteomics/aiproteomics/actions/workflows/sonarcloud.yml) [![markdown-link-check](https://github.com/aiproteomics/aiproteomics/actions/workflows/markdown-link-check.yml/badge.svg)](https://github.com/aiproteomics/aiproteomics/actions/workflows/markdown-link-check.yml)
 
+## Installation instructions
+
+The current package can be installed using poetry after cloning the repository.  
+Installation instructions for poetry itself can be found [here](https://python-poetry.org/docs/).  
+Once poetry is installed, run:
+
+```
+git clone git@github.com:aiproteomics/aiproteomics.git
+cd aiproteomics/
+poetry install
+```
+
 
 ## `aiproteomics` python package
 This package contains various tools, datasets and ML model implementations from the field of (phospho-)proteomics. It is intended to facilitate the testing and comparison of different neural network architectures and existing models, using the same datasets. Both retention time and fragmentation (MSMS) models are included.
