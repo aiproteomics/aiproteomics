@@ -270,7 +270,7 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
 
 
-def build_frag_transformer_model( # pylint: disable=too-many-arguments, too-many-locals
+def build_model_transformer_encoder_prosit_decoder( # pylint: disable=too-many-arguments, too-many-locals
         num_layers, 
         d_model, 
         num_heads, 
@@ -289,12 +289,14 @@ def build_frag_transformer_model( # pylint: disable=too-many-arguments, too-many
 
     enc_output = encoder(peptides_in)  # (batch_size, inp_seq_len, d_model)
 
-    net = enc_output[:, 0, :]
-    net = tf.keras.layers.Dropout(dropout_rate)(net)
+#    net = layers.Dense(512, name='dense_reduce', activation='linear')(enc_output)
+#    net = tf.keras.layers.Dropout(dropout_rate)(net)
 
-#    net = tf.keras.layers.Dense(1, activation = "linear", name = 'classifier')(net)
-#
-#    return tf.keras.Model(peptides_in, net)
+    flat_enc_output = layers.Flatten(name='flat_enc_output', trainable=True)(enc_output)
+    dense_reduce = layers.Dense(512, name='dense_reduce', trainable=True, activation='linear')(flat_enc_output)
+
+    net = tf.keras.layers.Dropout(dropout_rate)(dense_reduce)
+    
 
     # Collision energy and precursor charge branch
     meta_in = layers.Concatenate(name='meta_in', trainable=True, axis=-1)([collision_energy_in, precursor_charge_in])
