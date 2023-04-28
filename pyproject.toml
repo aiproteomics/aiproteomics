@@ -17,11 +17,12 @@ pydot = "^1.4.2"
 graphviz = "^0.20.1"
 lxml = "^4.9.2"
 
-
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
+pytest-cov = "^4.0.0"
 bump2version = "^1.0.1"
 prospector = "^1.8.4"
+pyroma = ">=2.4"
 jupyter = "^1.0.0"
 jupyterlab = "^3.6.1"
 
