@@ -36,7 +36,6 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
-          poetry lock --no-update
       - name: Run unit tests
         run: poetry run pytest -v
       - name: Verify that we can build the package
@@ -63,7 +62,6 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
-          poetry lock --no-update
       - name: Check style against standards using prospector
         run: poetry run prospector
 
