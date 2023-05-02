@@ -9,9 +9,11 @@ def reshape_dims(array):
     _, dims = array.shape
     assert dims == 174
     nlosses = 1
-    print(array.shape[0], MAX_SEQUENCE - 1, len(ION_TYPES), nlosses, MAX_FRAG_CHARGE)
+    print(array.shape[0], MAX_SEQUENCE - 1,
+          len(ION_TYPES), nlosses, MAX_FRAG_CHARGE)
     return array.reshape(
-        [array.shape[0], MAX_SEQUENCE - 1, len(ION_TYPES), nlosses, MAX_FRAG_CHARGE]
+        [array.shape[0], MAX_SEQUENCE - 1,
+            len(ION_TYPES), nlosses, MAX_FRAG_CHARGE]
     )
 
 
@@ -31,7 +33,7 @@ def normalize_base_peak(array):
 def mask_outofrange(array, lengths, mask=-1.0):
     # dim
     for i in range(array.shape[0]):
-        array[i, lengths[i] - 1 :, :, :, :] = mask
+        array[i, lengths[i] - 1:, :, :, :] = mask
     return array
 
 
@@ -43,7 +45,7 @@ def mask_outofcharge(array, charges, mask=-1.0):
     # dim
     for i in range(array.shape[0]):
         if charges[i] < 3:
-            array[i, :, :, :, charges[i] :] = mask
+            array[i, :, :, :, charges[i]:] = mask
     return array
 
 
@@ -54,11 +56,11 @@ def get_spectral_angle(true, pred, batch_size=600):
     def iterate():
         if n > batch_size:
             for i in range(n // batch_size):
-                true_sample = true[i * batch_size : (i + 1) * batch_size]
-                pred_sample = pred[i * batch_size : (i + 1) * batch_size]
+                true_sample = true[i * batch_size: (i + 1) * batch_size]
+                pred_sample = pred[i * batch_size: (i + 1) * batch_size]
                 yield i, true_sample, pred_sample
             i = n // batch_size
-            yield i, true[(i) * batch_size :], pred[(i) * batch_size :]
+            yield i, true[(i) * batch_size:], pred[(i) * batch_size:]
         else:
             yield 0, true, pred
 
@@ -67,7 +69,7 @@ def get_spectral_angle(true, pred, batch_size=600):
         with tensorflow.Session() as s:
             sa_graph = losses.masked_spectral_distance(t_b, p_b)
             sa_b = 1 - s.run(sa_graph)
-            sa[i * batch_size : i * batch_size + sa_b.shape[0]] = sa_b
+            sa[i * batch_size: i * batch_size + sa_b.shape[0]] = sa_b
     sa = numpy.nan_to_num(sa)
     return sa
 
@@ -80,7 +82,6 @@ def prediction(data, batch_size=600):
     sequence_lengths = numpy.count_nonzero(data["sequence_integer"], axis=1)
     intensities = data["intensities_pred"]
     charges = list(data["precursor_charge_onehot"].argmax(axis=1) + 1)
-
 
     print("charges", list(charges))
 

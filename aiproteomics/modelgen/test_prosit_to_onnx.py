@@ -5,12 +5,13 @@ from .prosit1_gen import build_prosit1_model
 def shape2tuple(shape):
     return tuple(getattr(d, 'dim_value', 0) for d in shape.dim)
 
+
 def test_prosit():
     build_prosit1_model()
 
     # leaving below code in, because we'll use parts of this to get the model parameters
     # see https://onnx.ai/onnx/intro/python.html for more info
-    
+
     model_path = './aiproteomics/modelgen/saved_models/prosit1.onnx'
 
     with open(model_path, "rb") as f:
@@ -22,10 +23,9 @@ def test_prosit():
         #     print("name=%r dtype=%r shape=%r" % (
         #         obj.name, obj.type.tensor_type.elem_type,
         #         shape2tuple(obj.type.tensor_type.shape)))
-        
+
         # for node in onnx_model.graph.node:
         #     print("name=%r type=%r input=%r output=%r" % (
         #     node.name, node.op_type, node.input, node.output))
-    
+
         assert len(onnx_model.graph.input) == 3
-    

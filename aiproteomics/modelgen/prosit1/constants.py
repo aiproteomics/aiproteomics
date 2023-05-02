@@ -15,7 +15,8 @@ TOLERANCE_FTMS = 25
 TOLERANCE_ITMS = 0.35
 TOLERANCE_TRIPLETOF = 0.5
 
-TOLERANCE = {"FTMS": (25, "ppm"), "ITMS": (0.35, "da"), "TripleTOF": (50, "ppm")}
+TOLERANCE = {"FTMS": (25, "ppm"), "ITMS": (
+    0.35, "da"), "TripleTOF": (50, "ppm")}
 
 
 ALPHABET = {
@@ -89,7 +90,7 @@ PROTON = 1.007276467
 ELECTRON = 0.00054858
 H = 1.007825035
 C = 12.0
-O = 15.99491463 # noqa: E741
+O = 15.99491463  # noqa: E741
 N = 14.003074
 
 # Tiny molecules
