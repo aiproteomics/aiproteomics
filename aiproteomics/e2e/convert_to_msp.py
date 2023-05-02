@@ -3,7 +3,6 @@
 
 import numpy as np
 import pyteomics
-from pyteomics import mass
 
 from aiproteomics.e2e import constants
 from aiproteomics.e2e import utils
@@ -89,24 +88,24 @@ def generate_mod_strings(sequence_integer):
     list_mods = generate_mods_string_tuples(sequence_integer)
     if len(list_mods) == 0:
         return "0", ""
-    else:
-        returnString_mods = ""
-        returnString_modString = ""
-        returnString_mods += str(len(list_mods))
-        for i, mod_tuple in enumerate(list_mods):
-            returnString_mods += (
-                "/" + str(mod_tuple[0]) + "," +
-                mod_tuple[1] + "," + mod_tuple[2]
+
+    returnString_mods = ""
+    returnString_modString = ""
+    returnString_mods += str(len(list_mods))
+    for i, mod_tuple in enumerate(list_mods):
+        returnString_mods += (
+            "/" + str(mod_tuple[0]) + "," +
+            mod_tuple[1] + "," + mod_tuple[2]
+        )
+        if i == 0:
+            returnString_modString += (
+                mod_tuple[2] + "@" + mod_tuple[1] + str(mod_tuple[0] + 1)
             )
-            if i == 0:
-                returnString_modString += (
-                    mod_tuple[2] + "@" + mod_tuple[1] + str(mod_tuple[0] + 1)
-                )
-            else:
-                returnString_modString += (
-                    "; " + mod_tuple[2] + "@" +
-                    mod_tuple[1] + str(mod_tuple[0] + 1)
-                )
+        else:
+            returnString_modString += (
+                "; " + mod_tuple[2] + "@" +
+                mod_tuple[1] + str(mod_tuple[0] + 1)
+            )
 
     return returnString_mods, returnString_modString
 
@@ -147,7 +146,7 @@ class Converter():
         return spec
 
 
-class Spectrum(object):
+class Spectrum:
     def __init__(
         self,
         aIntensity,

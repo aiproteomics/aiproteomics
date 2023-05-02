@@ -1,7 +1,6 @@
 # Code from (or adapted from) https://github.com/kusterlab/prosit/ Apache License 2.0
 # See README.md
 
-import numpy
 import collections
 from aiproteomics.e2e.constants import AMINO_ACID, PROTON, ION_OFFSET, FORWARD, BACKWARD
 from aiproteomics.e2e import constants
@@ -30,12 +29,12 @@ def get_annotation(forward, backward, charge, ion_types):
     tmp_nl = "{}{}-{}"
     all_ = {}
     for ion_type in ion_types:
-        if ion_type in constants.FORWARD:
+        if ion_type in FORWARD:
             cummass = forward
-        elif ion_type in constants.BACKWARD:
+        elif ion_type in BACKWARD:
             cummass = backward
         else:
-            raise ValueError("unkown ion_type: {}".format(ion_type))
+            raise ValueError(f"unknown ion_type: {ion_type}")
         masses = get_mzs(cummass, ion_type, charge)
         d = {tmp.format(ion_type, i + 1): m for i, m in enumerate(masses)}
         all_.update(d)

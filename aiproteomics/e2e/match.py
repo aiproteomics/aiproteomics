@@ -12,8 +12,8 @@ from aiproteomics.e2e import constants
 def read_attribute(row, attribute):
     if " " not in str(row[attribute]):
         return []
-    else:
-        return [float(m) for m in row[attribute].split(" ")]
+
+    return [float(m) for m in row[attribute].split(" ")]
 
 
 def peptide_parser(p):
@@ -58,7 +58,7 @@ def is_in_tolerance(theoretical, observed, mass_analyzer):
     mz_tolerance = get_tolerance(theoretical, mass_analyzer)
     lower = observed - mz_tolerance
     upper = observed + mz_tolerance
-    return theoretical >= lower and theoretical <= upper
+    return lower <= theoretical <= upper
 
 
 def binarysearch(masses_raw, theoretical, mass_analyzer):

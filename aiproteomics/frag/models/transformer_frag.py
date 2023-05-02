@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
+from keras import layers
 
 
 # Uses the last part of the Prosit model on the end of the first part of the RT transformer:

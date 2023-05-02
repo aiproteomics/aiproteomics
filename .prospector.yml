@@ -12,6 +12,8 @@ member-warnings: false
 ignore-paths:
   - docs
   - build
+  - demo
+  - aiproteomics/modelgen
 
 ignore-patterns:
   - __init__.py
@@ -23,6 +25,11 @@ pyroma:
 
 pycodestyle:
     full: true
+    disable:
+      - E741
+      - E722
+    options:
+      max-line-length: 150
 
 pydocstyle:
     disable: [
