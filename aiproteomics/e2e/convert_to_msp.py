@@ -3,6 +3,7 @@
 
 import numpy as np
 import pyteomics
+from pyteomics import mass # pylint: disable=unused-import
 
 from aiproteomics.e2e import constants
 from aiproteomics.e2e import utils

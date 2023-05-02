@@ -12,6 +12,7 @@ member-warnings: false
 ignore-paths:
   - docs
   - build
+  - tests
   - demo
   - aiproteomics/modelgen
 
@@ -30,6 +31,10 @@ pycodestyle:
       - E722
     options:
       max-line-length: 150
+
+pyflakes:
+  disable:
+    - F401
 
 pydocstyle:
     disable: [
