@@ -27,7 +27,6 @@ pyroma = ">=2.4"
 jupyter = "^1.0.0"
 jupyterlab = "^3.6.1"
 
-[project.optional-dependencies]
 doc = [
     "mkdocs >=1.1.2,<2.0.0",
     "mkdocs-material >=8.2.7,<9.0.0",
