@@ -7,10 +7,6 @@ repo_url: https://github.com/aiproteomics/aiproteomics
 edit_uri: "edit/main/docs/"
 copyright: Copyright &copy; 2022 Robin Richardson, Dani Bodor
 
-  - "<span>Issues&nbsp;&nbsp;<i class='fa-solid fa-arrow-up-right-from-square'></i></span>": https://github.com/aiproteomics/aiproteomics/issues" target="_blank
-# Icons: https://fontawesome.com/icons and https://squidfunk.github.io/mkdocs-material/reference/icons-emojis
-
-
 theme:
   name: "material"
   favicon: assets/icon.png
