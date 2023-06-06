@@ -12,13 +12,13 @@ authors:
     given-names: Dani L
     orcid: "https://orcid.org/0000-0003-2109-2349"
   -
-    family-names: Pham
-    given-names: Thang V
-    orcid: "https://orcid.org/0000-0003-0333-2492"
-  -
     family-names: Henneman
     given-names: Alex A
     orcid: "https://orcid.org/0000-0002-3746-4410"
+  -
+    family-names: Pham
+    given-names: Thang V
+    orcid: "https://orcid.org/0000-0003-0333-2492"
 date-released: 2023-05-03
 doi: 10.5281/zenodo.7890716
 version: "0.1.0"
