@@ -12,8 +12,8 @@ from aiproteomics.e2e import constants
 def read_attribute(row, attribute):
     if " " not in str(row[attribute]):
         return []
-    else:
-        return [float(m) for m in row[attribute].split(" ")]
+
+    return [float(m) for m in row[attribute].split(" ")]
 
 
 def peptide_parser(p):
@@ -23,7 +23,7 @@ def peptide_parser(p):
     i = 0
     while i < n:
         if i < n - 3 and p[i + 1] == "(":
-            j = p[i + 2 :].index(")")
+            j = p[i + 2:].index(")")
             offset = i + j + 3
             yield p[i:offset]
             i = offset
@@ -50,14 +50,15 @@ def get_tolerance(theoretical, mass_analyzer):
         else:
             raise ValueError("unit {} not implemented".format(unit))
     else:
-        raise ValueError("no tolerance implemented for {}".format(mass_analyzer))
+        raise ValueError(
+            "no tolerance implemented for {}".format(mass_analyzer))
 
 
 def is_in_tolerance(theoretical, observed, mass_analyzer):
     mz_tolerance = get_tolerance(theoretical, mass_analyzer)
     lower = observed - mz_tolerance
     upper = observed + mz_tolerance
-    return theoretical >= lower and theoretical <= upper
+    return lower <= theoretical <= upper
 
 
 def binarysearch(masses_raw, theoretical, mass_analyzer):
@@ -76,7 +77,8 @@ def binarysearch(masses_raw, theoretical, mass_analyzer):
 def match(row, ion_types, max_charge=constants.DEFAULT_MAX_CHARGE):
     masses_observed = read_attribute(row, "masses_raw")
     intensities_observed = read_attribute(row, "intensities_raw")
-    forward_sum, backward_sum = get_forward_backward(row.modified_sequence[1:-1])
+    forward_sum, backward_sum = get_forward_backward(
+        row.modified_sequence[1:-1])
     _max_charge = row.charge if row.charge <= max_charge else max_charge
     matches = []
     for charge_index in range(_max_charge):

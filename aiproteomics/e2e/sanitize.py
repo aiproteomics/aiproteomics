@@ -3,7 +3,8 @@
 
 import numpy
 import functools
-from aiproteomics.e2e.constants import *
+from aiproteomics.e2e.constants import MAX_SEQUENCE, ION_TYPES, MAX_NLOSSES, MAX_FRAG_CHARGE
+
 
 def reshape_dims(array):
     """
@@ -12,11 +13,12 @@ def reshape_dims(array):
     For default output layer size 174, this corresponds to the shape:
     N_sequences x 29 x 2 x 1 x 3
     """
-    n, dims = array.shape
+    _, dims = array.shape
     assert dims == 174
 
     return array.reshape(
-        [array.shape[0], MAX_SEQUENCE - 1, len(ION_TYPES), MAX_NLOSSES, MAX_FRAG_CHARGE]
+        [array.shape[0], MAX_SEQUENCE - 1,
+            len(ION_TYPES), MAX_NLOSSES, MAX_FRAG_CHARGE]
     )
 
 
@@ -49,7 +51,7 @@ def mask_outofrange(array, lengths, mask=-1.0):
     sequences will be shorter, and so the unused remainder of the array is masked.
     """
     for i in range(array.shape[0]):
-        array[i, lengths[i] - 1 :, :, :, :] = mask
+        array[i, lengths[i] - 1:, :, :, :] = mask
     return array
 
 
@@ -72,11 +74,11 @@ def mask_outofcharge(array, charges, mask=-1.0):
     """
     for i in range(array.shape[0]):
         if charges[i] < 3:
-            array[i, :, :, :, charges[i] :] = mask
+            array[i, :, :, :, charges[i]:] = mask
     return array
 
 
-def sanitize_prediction_output(data, batch_size=600):
+def sanitize_prediction_output(data):
     """
     Default prosit output layer is 174, coming from a
     flattening of array with dimensions: 29 x 2 x 1 x 3

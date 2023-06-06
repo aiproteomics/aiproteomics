@@ -4,10 +4,13 @@ import numpy as np
 from aiproteomics.e2e import convert_to_msp, tensorize
 from aiproteomics.e2e.constants import MAX_FRAG_CHARGE, MAX_NLOSSES
 
+
 def _predict(data, model_frag, model_irt, batch_size_frag=None, batch_size_iRT=None, iRT_rescaling_mean=None, iRT_rescaling_var=None):
     # Get fragmentation model predictions
-    x = [data['sequence_integer'], data['precursor_charge_onehot'], data['collision_energy_aligned_normed']]
-    prediction = model_frag.predict(x, verbose=False, batch_size=batch_size_frag)
+    x = [data['sequence_integer'], data['precursor_charge_onehot'],
+         data['collision_energy_aligned_normed']]
+    prediction = model_frag.predict(
+        x, verbose=False, batch_size=batch_size_frag)
     data["intensities_pred"] = prediction
     data = sanitize.sanitize_prediction_output(data)
 
@@ -21,7 +24,7 @@ def _predict(data, model_frag, model_irt, batch_size_frag=None, batch_size_iRT=N
 
 def _read_peptides_csv(fname):
 
-    df = pd.read_csv(fname)    
+    df = pd.read_csv(fname)
     df.reset_index(drop=True, inplace=True)
     assert "modified_sequence" in df.columns
     assert "collision_energy" in df.columns
@@ -81,14 +84,13 @@ def csv_to_msp(in_csv_fname, out_msp_fname, model_frag, model_irt, batch_size_fr
 
     data = _read_peptides_csv(in_csv_fname)
     data = _predict(data,
-               model_frag,
-               model_irt,
-               batch_size_frag=batch_size_frag,
-               batch_size_iRT=batch_size_iRT,
-               iRT_rescaling_mean=iRT_rescaling_mean,
-               iRT_rescaling_var=iRT_rescaling_var
-              )
+                    model_frag,
+                    model_irt,
+                    batch_size_frag=batch_size_frag,
+                    batch_size_iRT=batch_size_iRT,
+                    iRT_rescaling_mean=iRT_rescaling_mean,
+                    iRT_rescaling_var=iRT_rescaling_var
+                    )
 
     c = convert_to_msp.Converter(data, out_msp_fname)
     c.convert()
-

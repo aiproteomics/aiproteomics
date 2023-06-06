@@ -10,7 +10,8 @@ def get_angles(pos, i, d_model):
 # Position
 def positional_encoding(position, d_model):
     angle_rads = get_angles(
-        np.arange(position)[:, np.newaxis], np.arange(d_model)[np.newaxis, :], d_model
+        np.arange(position)[:, np.newaxis], np.arange(
+            d_model)[np.newaxis, :], d_model
     )
 
     # apply sin to even indices in the array; 2i
@@ -21,7 +22,7 @@ def positional_encoding(position, d_model):
 
     pos_encoding = angle_rads[np.newaxis, ...]
 
-    return tf.cast(pos_encoding, dtype=tf.float32) # pylint: disable= no-value-for-parameter, unexpected-keyword-arg
+    return tf.cast(pos_encoding, dtype=tf.float32)  # pylint: disable= no-value-for-parameter, unexpected-keyword-arg
 
 
 # Masking
@@ -54,7 +55,8 @@ def scaled_dot_product_attention(q, k, v, mask):
         output, attention_weights
     """
 
-    matmul_qk = tf.matmul(q, k, transpose_b=True)  # (..., seq_len_q, seq_len_k)
+    # (..., seq_len_q, seq_len_k)
+    matmul_qk = tf.matmul(q, k, transpose_b=True)
 
     # scale matmul_qk
     dk = tf.cast(tf.shape(k)[-1], tf.float32)
@@ -107,9 +109,12 @@ class multi_head_attention(tf.keras.layers.Layer):
         k = self.wk(k)  # (batch_size, seq_len, d_model)
         v = self.wv(v)  # (batch_size, seq_len, d_model)
 
-        q = self.split_heads(q, batch_size)  # (batch_size, num_heads, seq_len_q, depth)
-        k = self.split_heads(k, batch_size)  # (batch_size, num_heads, seq_len_k, depth)
-        v = self.split_heads(v, batch_size)  # (batch_size, num_heads, seq_len_v, depth)
+        # (batch_size, num_heads, seq_len_q, depth)
+        q = self.split_heads(q, batch_size)
+        # (batch_size, num_heads, seq_len_k, depth)
+        k = self.split_heads(k, batch_size)
+        # (batch_size, num_heads, seq_len_v, depth)
+        v = self.split_heads(v, batch_size)
 
         # scaled_attention.shape == (batch_size, num_heads, seq_len_q, depth)
         # attention_weights.shape == (batch_size, num_heads, seq_len_q, seq_len_k)
@@ -125,7 +130,8 @@ class multi_head_attention(tf.keras.layers.Layer):
             scaled_attention, (batch_size, -1, self.d_model)
         )  # (batch_size, seq_len_q, d_model)
 
-        output = self.dense(concat_attention)  # (batch_size, seq_len_q, d_model)
+        # (batch_size, seq_len_q, d_model)
+        output = self.dense(concat_attention)
 
         return output, attention_weights
 
@@ -134,35 +140,36 @@ class multi_head_attention(tf.keras.layers.Layer):
 def point_wise_feed_forward_network(d_model, dff):
     return tf.keras.Sequential(
         [
-            tf.keras.layers.Dense(dff, activation="relu"),  # (batch_size, seq_len, dff)
+            # (batch_size, seq_len, dff)
+            tf.keras.layers.Dense(dff, activation="relu"),
             tf.keras.layers.Dense(d_model),  # (batch_size, seq_len, d_model)
         ]
     )
 
 
-def build_rt_transformer_model( # pylint: disable=too-many-arguments
-        num_layers, 
-        d_model, 
-        num_heads, 
-        d_ff, 
-        dropout_rate, 
-        vocab_size, 
-        max_len,
-    ):
+def build_rt_transformer_model(  # pylint: disable=too-many-arguments
+    num_layers,
+    d_model,
+    num_heads,
+    d_ff,
+    dropout_rate,
+    vocab_size,
+    max_len,
+):
 
     coded_input = tf.keras.layers.Input(shape=(max_len,), name='input')
 
-    encoder = EncoderBlock(num_layers, d_model, num_heads, d_ff, vocab_size, max_len, dropout_rate)
+    encoder = EncoderBlock(num_layers, d_model, num_heads,
+                           d_ff, vocab_size, max_len, dropout_rate)
 
     enc_output = encoder(coded_input)  # (batch_size, inp_seq_len, d_model)
 
     net = enc_output[:, 0, :]
 
     net = tf.keras.layers.Dropout(dropout_rate)(net)
-    net = tf.keras.layers.Dense(1, activation = "linear", name = 'classifier')(net)
+    net = tf.keras.layers.Dense(1, activation="linear", name='classifier')(net)
 
     return tf.keras.Model(coded_input, net)
-
 
 
 # Encoder and decoder
@@ -181,9 +188,11 @@ class EncoderLayer(tf.keras.layers.Layer):
 
     def call(self, x, training, mask):
 
-        attn_output, _ = self.mha(x, x, x, mask)  # (batch_size, input_seq_len, d_model)
+        # (batch_size, input_seq_len, d_model)
+        attn_output, _ = self.mha(x, x, x, mask)
         attn_output = self.dropout1(attn_output, training=training)
-        out1 = self.layernorm1(x + attn_output)  # (batch_size, input_seq_len, d_model)
+        # (batch_size, input_seq_len, d_model)
+        out1 = self.layernorm1(x + attn_output)
 
         ffn_output = self.ffn(out1)  # (batch_size, input_seq_len, d_model)
         ffn_output = self.dropout2(ffn_output, training=training)
@@ -194,13 +203,12 @@ class EncoderLayer(tf.keras.layers.Layer):
         return out2
 
 
-
 # Encoder
 class EncoderBlock(tf.keras.layers.Layer):
-    def __init__( # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         num_layers,
-        #d_embedding,
+        # d_embedding,
         d_model,
         num_heads,
         dff,
@@ -214,7 +222,7 @@ class EncoderBlock(tf.keras.layers.Layer):
         self.num_layers = num_layers
 
         """ TP: for saving """
-        #self.d_embedding = d_embedding,
+        # self.d_embedding = d_embedding,
         self.num_heads = num_heads
         self.dff = dff
         self.input_vocab_size = (input_vocab_size,)
@@ -223,7 +231,8 @@ class EncoderBlock(tf.keras.layers.Layer):
         """ TP END """
 
         self.embedding = tf.keras.layers.Embedding(input_vocab_size, d_model)
-        self.pos_encoding = positional_encoding(maximum_position_encoding, d_model)
+        self.pos_encoding = positional_encoding(
+            maximum_position_encoding, d_model)
 
         self.enc_layers = [
             EncoderLayer(d_model, num_heads, dff, rate) for _ in range(num_layers)
@@ -239,7 +248,7 @@ class EncoderBlock(tf.keras.layers.Layer):
 
         # adding embedding and position encoding.
         x = self.embedding(x)  # (batch_size, input_seq_len, d_model)
-        #x *= tf.math.sqrt(tf.cast(self.d_embedding, tf.float32))
+        # x *= tf.math.sqrt(tf.cast(self.d_embedding, tf.float32))
         x *= tf.math.sqrt(tf.cast(self.d_model, tf.float32))
         x += self.pos_encoding[:, :seq_len, :]
 

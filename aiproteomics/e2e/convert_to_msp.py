@@ -3,7 +3,7 @@
 
 import numpy as np
 import pyteomics
-from pyteomics import mass
+from pyteomics import mass # pylint: disable=unused-import
 
 from aiproteomics.e2e import constants
 from aiproteomics.e2e import utils
@@ -32,7 +32,8 @@ aa_comp = generate_aa_comp()
 
 def get_ions():
     x = np.empty(
-        [constants.MAX_ION, len(constants.ION_TYPES), constants.MAX_FRAG_CHARGE],
+        [constants.MAX_ION, len(constants.ION_TYPES),
+         constants.MAX_FRAG_CHARGE],
         dtype="|S6",
     )
     for fz in range(constants.MAX_FRAG_CHARGE):
@@ -88,22 +89,24 @@ def generate_mod_strings(sequence_integer):
     list_mods = generate_mods_string_tuples(sequence_integer)
     if len(list_mods) == 0:
         return "0", ""
-    else:
-        returnString_mods = ""
-        returnString_modString = ""
-        returnString_mods += str(len(list_mods))
-        for i, mod_tuple in enumerate(list_mods):
-            returnString_mods += (
-                "/" + str(mod_tuple[0]) + "," + mod_tuple[1] + "," + mod_tuple[2]
+
+    returnString_mods = ""
+    returnString_modString = ""
+    returnString_mods += str(len(list_mods))
+    for i, mod_tuple in enumerate(list_mods):
+        returnString_mods += (
+            "/" + str(mod_tuple[0]) + "," +
+            mod_tuple[1] + "," + mod_tuple[2]
+        )
+        if i == 0:
+            returnString_modString += (
+                mod_tuple[2] + "@" + mod_tuple[1] + str(mod_tuple[0] + 1)
             )
-            if i == 0:
-                returnString_modString += (
-                    mod_tuple[2] + "@" + mod_tuple[1] + str(mod_tuple[0] + 1)
-                )
-            else:
-                returnString_modString += (
-                    "; " + mod_tuple[2] + "@" + mod_tuple[1] + str(mod_tuple[0] + 1)
-                )
+        else:
+            returnString_modString += (
+                "; " + mod_tuple[2] + "@" +
+                mod_tuple[1] + str(mod_tuple[0] + 1)
+            )
 
     return returnString_mods, returnString_modString
 
@@ -124,7 +127,8 @@ class Converter():
                 collision_energy = self.data["collision_energy_aligned_normed"][i] * 100
                 iRT = np.squeeze(self.data["iRT"][i])
                 aMass = self.data["masses_pred"][i][sel]
-                precursor_charge = self.data["precursor_charge_onehot"][i].argmax() + 1
+                precursor_charge = self.data["precursor_charge_onehot"][i].argmax(
+                ) + 1
                 sequence_integer = self.data["sequence_integer"][i]
                 aIons = IONS[sel]
                 spec = Spectrum(
@@ -143,7 +147,7 @@ class Converter():
         return spec
 
 
-class Spectrum(object):
+class Spectrum:
     def __init__(
         self,
         aIntensity,
@@ -189,5 +193,6 @@ class Spectrum(object):
         )
         for mz, intensity, ion in zip(self.aMass, self.aIntensity, self.aIons):
             s += "\n" + str(mz) + "\t" + str(intensity) + '\t"'
-            s += ion.decode("UTF-8").replace("(", "^").replace("+", "") + '/0.0ppm"'
+            s += ion.decode("UTF-8").replace("(",
+                                             "^").replace("+", "") + '/0.0ppm"'
         return s

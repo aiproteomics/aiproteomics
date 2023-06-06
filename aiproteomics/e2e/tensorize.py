@@ -1,21 +1,11 @@
 import collections
 import numpy as np
 
+#from .constants import CHARGES, MAX_SEQUENCE, ALPHABET, MAX_ION, NLOSSES, CHARGES, ION_TYPES, ION_OFFSET
 from . import constants
 from . import utils
 from . import match
 from . import annotate
-from . import sanitize
-from .constants import (
-    CHARGES,
-    MAX_SEQUENCE,
-    ALPHABET,
-    MAX_ION,
-    NLOSSES,
-    CHARGES,
-    ION_TYPES,
-    ION_OFFSET,
-)
 
 
 def stack(queue):
@@ -58,7 +48,7 @@ def get_precursor_charge_onehot(charges):
         If charges=3, and the max charge number is 6, then
         the output will be [0, 0, 1, 0, 0, 0]
     """
-    array = np.zeros([len(charges), max(CHARGES)], dtype=int)
+    array = np.zeros([len(charges), max(constants.CHARGES)], dtype=int)
     for i, precursor_charge in enumerate(charges):
         array[i, precursor_charge - 1] = 1
     return array
@@ -69,28 +59,28 @@ def get_sequence_integer(sequences):
     Takes modified sequence (string) as input. For example, "MMPAAALIM(ox)R"
     Maps it to an array of integers, according to the prosit alphabet.
     """
-    array = np.zeros([len(sequences), MAX_SEQUENCE], dtype=int)
+    array = np.zeros([len(sequences), constants.MAX_SEQUENCE], dtype=int)
     for i, sequence in enumerate(sequences):
         for j, s in enumerate(utils.peptide_parser(sequence)):
-            array[i, j] = ALPHABET[s]
+            array[i, j] = constants.ALPHABET[s]
     return array
 
 
 def parse_ion(string):
-    ion_type = ION_TYPES.index(string[0])
+    ion_type = constants.ION_TYPES.index(string[0])
     if ("-") in string:
         ion_n, suffix = string[1:].split("-")
     else:
         ion_n = string[1:]
         suffix = ""
-    return ion_type, int(ion_n) - 1, NLOSSES.index(suffix)
+    return ion_type, int(ion_n) - 1, constants.NLOSSES.index(suffix)
 
 
 def get_mz_applied(df, ion_types="yb"):
-    ito = {it: ION_OFFSET[it] for it in ion_types}
+    ito = {it: constants.ION_OFFSET[it] for it in ion_types}
 
     def calc_row(row):
-        array = np.zeros([MAX_ION, len(ION_TYPES), len(NLOSSES), len(CHARGES)])
+        array = np.zeros([constants.MAX_ION, len(constants.ION_TYPES), len(constants.NLOSSES), len(constants.CHARGES)])
         fw, bw = match.get_forward_backward(row.modified_sequence)
         for z in range(row.precursor_charge):
             zpp = z + 1
