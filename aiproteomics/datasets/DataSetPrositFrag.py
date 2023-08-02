@@ -21,7 +21,9 @@ class DataSetPrositFrag:
 
             for expected_key in self.EXPECTED_PROSIT_FRAG_DATA_KEYS:
                 if expected_key not in f.keys():
-                    raise ValueError(f"Expected key {expected_key} in provided hdf5 dataset {dataset_fname}. Are you sure this is a Prosit 2019 Fragmentation Dataset?")
+                    raise ValueError(
+                            f"Expected key {expected_key} in provided hdf5 dataset {dataset_fname}."
+                            "Are you sure this is a Prosit 2019 Fragmentation Dataset?")
             
             self.sequence = f['sequence_integer'][:N]
             self.precursor_charge = f['precursor_charge_onehot'][:N]

@@ -2,6 +2,7 @@ import tensorflow as tf
 import keras.backend as k
 import numpy as np
 import pandas as pd
+import seaborn as sns
 
 from aiproteomics.datasets.DataSetPrositFrag import DataSetPrositFrag
 
@@ -21,7 +22,9 @@ class ComparisonPrositFrag:
         for true, pred in np.stack((true_all, pred_all), axis=1):
             true = true.clip(min=0)
             pred = pred.clip(min=0)
-            spectral_distance.append(ComparisonPrositFrag.normalized_spectral_contrast_distance(true, pred))
+            spectral_distance.append(
+                    ComparisonPrositFrag.normalized_spectral_contrast_distance(true, pred)
+                    )
         spectral_distance = np.array(spectral_distance)
 
         result_dict = {'normalized_spectral_contrast_distance': spectral_distance, 'collision_energy': dataset.collision_energy.flatten()}
@@ -33,7 +36,6 @@ class ComparisonPrositFrag:
         df = ComparisonPrositFrag.compare_spectral_angle_distributions(dataset, frag_model)
 
         # Plot the spectral angle distances, one for each collision energy
-        import seaborn as sns
         sns.set_theme()
         sns.violinplot(data=df, x="collision_energy", y="normalized_spectral_contrast_distance")
 

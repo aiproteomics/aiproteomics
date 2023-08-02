@@ -638,5 +638,3 @@ def build_model_transformer_encoder_simple_prediction_head( # pylint: disable=to
                   optimizer='adam', metrics=['accuracy'])
 
     return model
-
-
