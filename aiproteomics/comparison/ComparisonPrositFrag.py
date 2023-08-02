@@ -31,13 +31,19 @@ class ComparisonPrositFrag:
         return pd.DataFrame.from_dict(result_dict)
     
     @staticmethod
-    def plot_spectral_angle_distributions(dataset: DataSetPrositFrag, frag_model):
+    def plot_spectral_angle_distributions(dataset: DataSetPrositFrag, frag_model, save_fname=None):
         # Calculate the spectral angle distances
         df = ComparisonPrositFrag.compare_spectral_angle_distributions(dataset, frag_model)
 
         # Plot the spectral angle distances, one for each collision energy
         sns.set_theme()
-        sns.violinplot(data=df, x="collision_energy", y="normalized_spectral_contrast_distance")
+        sa_plot = sns.violinplot(data=df, x="collision_energy", y="normalized_spectral_contrast_distance")
+
+        # If save filename is provided, save the figure
+        if save_fname is not None:
+            sa_plot.get_figure().savefig(save_fname)
+
+        return sa_plot
 
     @staticmethod
     def normalized_spectral_contrast_distance(true, pred):
