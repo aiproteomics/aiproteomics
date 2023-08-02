@@ -29,5 +29,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git pull
-          poetry run mkdocs gh-deploy
+          poetry run mkdocs gh-deploy --force
