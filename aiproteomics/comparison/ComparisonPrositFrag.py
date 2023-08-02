@@ -35,7 +35,7 @@ class ComparisonPrositFrag:
         # Plot the spectral angle distances, one for each collision energy
         import seaborn as sns
         sns.set_theme()
-        sns.violinplot(data=df, x="collision_energy", y="normalized_spectral_contrast_distance", hue="collision_energy", scale='width')
+        sns.violinplot(data=df, x="collision_energy", y="normalized_spectral_contrast_distance")
 
     @staticmethod
     def normalized_spectral_contrast_distance(true, pred):
