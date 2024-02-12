@@ -6,6 +6,7 @@ import seaborn as sns
 
 from aiproteomics.datasets.DataSetPrositFrag import DataSetPrositFrag
 
+
 class ComparisonPrositFrag:
 
     @staticmethod
@@ -23,13 +24,16 @@ class ComparisonPrositFrag:
             true = true.clip(min=0)
             pred = pred.clip(min=0)
             spectral_distance.append(
-                    ComparisonPrositFrag.normalized_spectral_contrast_distance(true, pred)
-                    )
+                ComparisonPrositFrag.normalized_spectral_contrast_distance(true, pred)
+            )
         spectral_distance = np.array(spectral_distance)
 
-        result_dict = {'normalized_spectral_contrast_distance': spectral_distance, 'collision_energy': dataset.collision_energy.flatten()}
+        result_dict = {
+            "normalized_spectral_contrast_distance": spectral_distance,
+            "collision_energy": dataset.collision_energy.flatten(),
+        }
         return pd.DataFrame.from_dict(result_dict)
-    
+
     @staticmethod
     def plot_spectral_angle_distributions(dataset: DataSetPrositFrag, frag_model, save_fname=None):
         # Calculate the spectral angle distances
@@ -37,7 +41,9 @@ class ComparisonPrositFrag:
 
         # Plot the spectral angle distances, one for each collision energy
         sns.set_theme()
-        sa_plot = sns.violinplot(data=df, x="collision_energy", y="normalized_spectral_contrast_distance")
+        sa_plot = sns.violinplot(
+            data=df, x="collision_energy", y="normalized_spectral_contrast_distance"
+        )
 
         # If save filename is provided, save the figure
         if save_fname is not None:

@@ -1,4 +1,3 @@
-
 # Code from (or adapted from) https://github.com/kusterlab/prosit/ Apache License 2.0
 # See README.md
 
@@ -23,7 +22,7 @@ def peptide_parser(p):
     i = 0
     while i < n:
         if i < n - 3 and p[i + 1] == "(":
-            j = p[i + 2:].index(")")
+            j = p[i + 2 :].index(")")
             offset = i + j + 3
             yield p[i:offset]
             i = offset
@@ -44,14 +43,13 @@ def get_tolerance(theoretical, mass_analyzer):
     if mass_analyzer in constants.TOLERANCE:
         tolerance, unit = constants.TOLERANCE[mass_analyzer]
         if unit == "ppm":
-            return theoretical * float(tolerance) / 10 ** 6
+            return theoretical * float(tolerance) / 10**6
         elif unit == "da":
             return float(tolerance)
         else:
             raise ValueError("unit {} not implemented".format(unit))
     else:
-        raise ValueError(
-            "no tolerance implemented for {}".format(mass_analyzer))
+        raise ValueError("no tolerance implemented for {}".format(mass_analyzer))
 
 
 def is_in_tolerance(theoretical, observed, mass_analyzer):
@@ -77,8 +75,7 @@ def binarysearch(masses_raw, theoretical, mass_analyzer):
 def match(row, ion_types, max_charge=constants.DEFAULT_MAX_CHARGE):
     masses_observed = read_attribute(row, "masses_raw")
     intensities_observed = read_attribute(row, "intensities_raw")
-    forward_sum, backward_sum = get_forward_backward(
-        row.modified_sequence[1:-1])
+    forward_sum, backward_sum = get_forward_backward(row.modified_sequence[1:-1])
     _max_charge = row.charge if row.charge <= max_charge else max_charge
     matches = []
     for charge_index in range(_max_charge):
@@ -89,9 +86,7 @@ def match(row, ion_types, max_charge=constants.DEFAULT_MAX_CHARGE):
             "matches": [],
         }
         charge = charge_index + 1
-        annotations = annotate.get_annotation(
-            forward_sum, backward_sum, charge, ion_types
-        )
+        annotations = annotate.get_annotation(forward_sum, backward_sum, charge, ion_types)
         for annotation, mass_t in annotations.items():
             index = binarysearch(masses_observed, mass_t, row.mass_analyzer)
             if index is not None:
@@ -126,9 +121,7 @@ def augment(df, ion_types, charge_max):
 
     # augment dataframe and write
     for charge in range(1, charge_max + 1):
-        df["matches_charge{}".format(charge)] = df.index.map(
-            c_lambda(matches, charge, "matches")
-        )
+        df["matches_charge{}".format(charge)] = df.index.map(c_lambda(matches, charge, "matches"))
         df["masses_the_charge{}".format(charge)] = df.index.map(
             c_lambda(matches, charge, "masses_theoretical")
         )

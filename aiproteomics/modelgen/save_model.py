@@ -2,15 +2,15 @@ import os
 import tf2onnx
 
 
-VALID_OUTPUT_FORMATS = ['onnx', 'keras']
+VALID_OUTPUT_FORMATS = ["onnx", "keras"]
 
 
 def save_model(  # pylint: disable=too-many-arguments
     model: str,
     name: str,
-    framework: str = 'keras',
-    output_formats: str = 'onnx',
-    output_dir: str = './aiproteomics/modelgen/saved_models/',
+    framework: str = "keras",
+    output_formats: str = "onnx",
+    output_dir: str = "./aiproteomics/modelgen/saved_models/",
     overwrite: bool = True,
 ):
     """Function to save the model.
@@ -29,7 +29,7 @@ def save_model(  # pylint: disable=too-many-arguments
 
         output_dir (str): directory to save the model
 
-        overwrite (bool): 
+        overwrite (bool):
             if True: any existing file model with the same name will be overwritten.
             if False: will append a number behind the file name to create a new file
     """
@@ -43,16 +43,16 @@ def save_model(  # pylint: disable=too-many-arguments
             invalid_output_formatss.append(output_format)
         if invalid_output_formatss:
             raise ValueError(
-                f'Invalid output_formats given ({invalid_output_formatss}).\n'
-                f'Select valid output_formats from {VALID_OUTPUT_FORMATS}.'
+                f"Invalid output_formats given ({invalid_output_formatss}).\n"
+                f"Select valid output_formats from {VALID_OUTPUT_FORMATS}."
             )
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     # Save model
-    if framework == 'keras':
-        if 'onnx' in output_formats:
+    if framework == "keras":
+        if "onnx" in output_formats:
             # using default opset and spec settings for now,
             # might need to be hardcoded if it doesn't work for all cases in the future
             # for some idea on how to set this, see example on https://github.com/onnx/tensorflow-onnx/blob/main/tutorials/keras-resnet50.ipynb
@@ -60,11 +60,11 @@ def save_model(  # pylint: disable=too-many-arguments
             if not overwrite:
                 output_path = update_path(output_path)
             tf2onnx.convert.from_keras(model, output_path=output_path)
-        if 'keras' in output_formats:
+        if "keras" in output_formats:
             model.save(output_dir + name)
     else:
         raise NotImplementedError(
-            'save_model is currently only implemented for keras models. Other input formats will be added as well.'
+            "save_model is currently only implemented for keras models. Other input formats will be added as well."
         )
 
 
@@ -79,6 +79,6 @@ def update_path(file):
 
     while os.path.exists(file):
         n += 1
-        file = basename + '_' + str(n) + ext
+        file = basename + "_" + str(n) + ext
 
     return file

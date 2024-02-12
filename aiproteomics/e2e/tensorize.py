@@ -1,7 +1,7 @@
 import collections
 import numpy as np
 
-#from .constants import CHARGES, MAX_SEQUENCE, ALPHABET, MAX_ION, NLOSSES, CHARGES, ION_TYPES, ION_OFFSET
+# from .constants import CHARGES, MAX_SEQUENCE, ALPHABET, MAX_ION, NLOSSES, CHARGES, ION_TYPES, ION_OFFSET
 from . import constants
 from . import utils
 from . import match
@@ -80,7 +80,14 @@ def get_mz_applied(df, ion_types="yb"):
     ito = {it: constants.ION_OFFSET[it] for it in ion_types}
 
     def calc_row(row):
-        array = np.zeros([constants.MAX_ION, len(constants.ION_TYPES), len(constants.NLOSSES), len(constants.CHARGES)])
+        array = np.zeros(
+            [
+                constants.MAX_ION,
+                len(constants.ION_TYPES),
+                len(constants.NLOSSES),
+                len(constants.CHARGES),
+            ]
+        )
         fw, bw = match.get_forward_backward(row.modified_sequence)
         for z in range(row.precursor_charge):
             zpp = z + 1

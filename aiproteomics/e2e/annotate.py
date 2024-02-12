@@ -40,7 +40,6 @@ def get_annotation(forward, backward, charge, ion_types):
         all_.update(d)
         for nl, offset in constants.NEUTRAL_LOSS.items():
             nl_masses = get_mzs(cummass - offset, ion_type, charge)
-            d = {tmp_nl.format(ion_type, i + 1, nl): m for i,
-                 m in enumerate(nl_masses)}
+            d = {tmp_nl.format(ion_type, i + 1, nl): m for i, m in enumerate(nl_masses)}
             all_.update(d)
     return collections.OrderedDict(sorted(all_.items(), key=lambda t: t[0]))

@@ -18,8 +18,7 @@ def get_angles(pos, i, d_model):
 # Position
 def positional_encoding(position, d_model):
     angle_rads = get_angles(
-        np.arange(position)[:, np.newaxis], np.arange(
-            d_model)[np.newaxis, :], d_model
+        np.arange(position)[:, np.newaxis], np.arange(d_model)[np.newaxis, :], d_model
     )
 
     # apply sin to even indices in the array; 2i
@@ -30,7 +29,9 @@ def positional_encoding(position, d_model):
 
     pos_encoding = angle_rads[np.newaxis, ...]
 
-    return tf.cast(pos_encoding, dtype=tf.float32)  # pylint: disable= no-value-for-parameter, unexpected-keyword-arg
+    return tf.cast(
+        pos_encoding, dtype=tf.float32
+    )  # pylint: disable= no-value-for-parameter, unexpected-keyword-arg
 
 
 # Masking
@@ -49,14 +50,14 @@ def scaled_dot_product_attention(q, k, v, mask):
 
     q, k, v must have matching leading dimensions.
     k, v must have matching penultimate dimension, i.e.: seq_len_k = seq_len_v.
-    The mask has different shapes depending on its type(padding or look ahead) 
+    The mask has different shapes depending on its type(padding or look ahead)
     but it must be broadcastable for addition.
 
     Args:
         q: query shape == (..., seq_len_q, depth)
         k: key shape == (..., seq_len_k, depth)
         v: value shape == (..., seq_len_v, depth_v)
-        mask: Float tensor with shape broadcastable 
+        mask: Float tensor with shape broadcastable
             to (..., seq_len_q, seq_len_k). Defaults to None.
 
     Returns:
@@ -126,9 +127,7 @@ class multi_head_attention(tf.keras.layers.Layer):
 
         # scaled_attention.shape == (batch_size, num_heads, seq_len_q, depth)
         # attention_weights.shape == (batch_size, num_heads, seq_len_q, seq_len_k)
-        scaled_attention, attention_weights = scaled_dot_product_attention(
-            q, k, v, mask
-        )
+        scaled_attention, attention_weights = scaled_dot_product_attention(q, k, v, mask)
 
         scaled_attention = tf.transpose(
             scaled_attention, perm=[0, 2, 1, 3]
@@ -179,9 +178,7 @@ class EncoderLayer(tf.keras.layers.Layer):
 
         ffn_output = self.ffn(out1)  # (batch_size, input_seq_len, d_model)
         ffn_output = self.dropout2(ffn_output, training=training)
-        out2 = self.layernorm2(
-            out1 + ffn_output
-        )  # (batch_size, input_seq_len, d_model)
+        out2 = self.layernorm2(out1 + ffn_output)  # (batch_size, input_seq_len, d_model)
 
         return out2
 
@@ -214,12 +211,9 @@ class EncoderBlock(tf.keras.layers.Layer):
         """ TP END """
 
         self.embedding = tf.keras.layers.Embedding(input_vocab_size, d_model)
-        self.pos_encoding = positional_encoding(
-            maximum_position_encoding, d_model)
+        self.pos_encoding = positional_encoding(maximum_position_encoding, d_model)
 
-        self.enc_layers = [
-            EncoderLayer(d_model, num_heads, dff, rate) for _ in range(num_layers)
-        ]
+        self.enc_layers = [EncoderLayer(d_model, num_heads, dff, rate) for _ in range(num_layers)]
 
         self.dropout = tf.keras.layers.Dropout(rate)
 
@@ -270,7 +264,7 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
     def __call__(self, step):
         arg1 = tf.math.rsqrt(step)
-        arg2 = step * (self.warmup_steps ** -1.5)
+        arg2 = step * (self.warmup_steps**-1.5)
 
         return tf.math.rsqrt(self.d_model) * tf.math.minimum(arg1, arg2)
 
@@ -286,53 +280,63 @@ def build_model_transformer_encoder_prosit_decoder(  # pylint: disable=too-many-
 ):
 
     # Transformer branch (peptide input)
-    peptides_in = tf.keras.layers.Input(shape=(max_len,), name='peptides_in')
+    peptides_in = tf.keras.layers.Input(shape=(max_len,), name="peptides_in")
     collision_energy_in = keras.Input(
-        name='collision_energy_in', dtype='float32', sparse=False, batch_input_shape=(None, 1))
+        name="collision_energy_in", dtype="float32", sparse=False, batch_input_shape=(None, 1)
+    )
     precursor_charge_in = keras.Input(
-        name='precursor_charge_in', dtype='float32', sparse=False, batch_input_shape=(None, 6))
+        name="precursor_charge_in", dtype="float32", sparse=False, batch_input_shape=(None, 6)
+    )
 
-    encoder = EncoderBlock(num_layers, d_model, num_heads,
-                           d_ff, vocab_size, max_len, dropout_rate)
+    encoder = EncoderBlock(num_layers, d_model, num_heads, d_ff, vocab_size, max_len, dropout_rate)
 
     enc_output = encoder(peptides_in)  # (batch_size, inp_seq_len, d_model)
 
-    flat_enc_output = layers.Flatten(name='flat_enc_output', trainable=True)(enc_output)
-    dense_reduce = layers.Dense(512, name='dense_reduce', trainable=True, activation='linear')(flat_enc_output)
+    flat_enc_output = layers.Flatten(name="flat_enc_output", trainable=True)(enc_output)
+    dense_reduce = layers.Dense(512, name="dense_reduce", trainable=True, activation="linear")(
+        flat_enc_output
+    )
 
     net = tf.keras.layers.Dropout(dropout_rate)(dense_reduce)
-    
 
     # Collision energy and precursor charge branch
-    meta_in = layers.Concatenate(name='meta_in', trainable=True, axis=-1)([collision_energy_in, precursor_charge_in])
-    meta_dense = layers.Dense(512,
-                    name='meta_dense',
-                    activation='linear',
-                    activity_regularizer=None,
-                    bias_constraint=None,
-                    bias_initializer='zeros',
-                    bias_regularizer=None,
-                    kernel_constraint=None,
-                    kernel_initializer=keras.initializers.VarianceScaling(distribution='uniform', mode='fan_avg', scale=1.0, seed=None),
-                    kernel_regularizer=None,
-                    trainable=True,
-                    use_bias=True)(meta_in)
+    meta_in = layers.Concatenate(name="meta_in", trainable=True, axis=-1)(
+        [collision_energy_in, precursor_charge_in]
+    )
+    meta_dense = layers.Dense(
+        512,
+        name="meta_dense",
+        activation="linear",
+        activity_regularizer=None,
+        bias_constraint=None,
+        bias_initializer="zeros",
+        bias_regularizer=None,
+        kernel_constraint=None,
+        kernel_initializer=keras.initializers.VarianceScaling(
+            distribution="uniform", mode="fan_avg", scale=1.0, seed=None
+        ),
+        kernel_regularizer=None,
+        trainable=True,
+        use_bias=True,
+    )(meta_in)
 
-    meta_dense_do = layers.Dropout(name='meta_dense_do', rate=0.3, noise_shape=None, seed=None, trainable=True)(meta_dense)
-
+    meta_dense_do = layers.Dropout(
+        name="meta_dense_do", rate=0.3, noise_shape=None, seed=None, trainable=True
+    )(meta_dense)
 
     # Joining branches
-    add_meta = layers.Multiply(name='add_meta', trainable=True)([net, meta_dense_do])
+    add_meta = layers.Multiply(name="add_meta", trainable=True)([net, meta_dense_do])
 
-    repeat = layers.RepeatVector(name='repeat', n=29, trainable=True)(add_meta)
-
+    repeat = layers.RepeatVector(name="repeat", n=29, trainable=True)(add_meta)
 
     # Warning: This was a 'CuDNNGRU' layer in the original 2019 model, it is now GRU.
     decoder = layers.GRU(
         512,
-        name='decoder',
-        kernel_initializer=keras.initializers.VarianceScaling(distribution='uniform', mode='fan_avg', scale=1.0, seed=None),
-        bias_initializer='zeros',
+        name="decoder",
+        kernel_initializer=keras.initializers.VarianceScaling(
+            distribution="uniform", mode="fan_avg", scale=1.0, seed=None
+        ),
+        bias_initializer="zeros",
         bias_regularizer=None,
         go_backwards=False,
         kernel_constraint=None,
@@ -345,70 +349,89 @@ def build_model_transformer_encoder_prosit_decoder(  # pylint: disable=too-many-
         return_sequences=True,
         return_state=False,
         stateful=False,
-        trainable=True)(repeat)
+        trainable=True,
+    )(repeat)
 
+    dropout_3 = layers.Dropout(
+        name="dropout_3", rate=0.3, noise_shape=None, seed=None, trainable=True
+    )(decoder)
 
-    dropout_3 = layers.Dropout(name='dropout_3', rate=0.3, noise_shape=None, seed=None, trainable=True)(decoder)
+    permute_1 = layers.Permute(name="permute_1", dims=(2, 1), trainable=True)(dropout_3)
 
-    permute_1 = layers.Permute(name='permute_1', dims=(2,1), trainable=True)(dropout_3)
+    dense_1 = layers.Dense(
+        29,
+        name="dense_1",
+        activation="softmax",
+        activity_regularizer=None,
+        bias_constraint=None,
+        bias_initializer="zeros",
+        bias_regularizer=None,
+        kernel_constraint=None,
+        kernel_initializer=keras.initializers.VarianceScaling(
+            distribution="uniform", mode="fan_avg", scale=1.0, seed=None
+        ),
+        kernel_regularizer=None,
+        trainable=True,
+        use_bias=True,
+    )(permute_1)
 
-    dense_1 = layers.Dense(29,
-                    name='dense_1',
-                    activation='softmax',
-                    activity_regularizer=None,
-                    bias_constraint=None,
-                    bias_initializer='zeros',
-                    bias_regularizer=None,
-                    kernel_constraint=None,
-                    kernel_initializer=keras.initializers.VarianceScaling(distribution='uniform', mode='fan_avg', scale=1.0, seed=None),
-                    kernel_regularizer=None,
-                    trainable=True,
-                    use_bias=True)(permute_1)
+    permute_2 = layers.Permute(name="permute_2", dims=(2, 1), trainable=True)(dense_1)
 
-    permute_2 = layers.Permute(name='permute_2', dims=(2,1), trainable=True)(dense_1)
+    multiply_1 = layers.Multiply(name="multiply_1", trainable=True)([permute_2, dropout_3])
 
-    multiply_1 = layers.Multiply(name='multiply_1', trainable=True)([permute_2, dropout_3])
+    dense_2 = layers.Dense(
+        6,
+        name="dense_2",
+        activation="linear",
+        activity_regularizer=None,
+        bias_constraint=None,
+        bias_initializer="zeros",
+        bias_regularizer=None,
+        kernel_constraint=None,
+        kernel_initializer=keras.initializers.VarianceScaling(
+            distribution="uniform", mode="fan_avg", scale=1.0, seed=None
+        ),
+        kernel_regularizer=None,
+        trainable=True,
+        use_bias=True,
+    )
+    timedense = layers.TimeDistributed(dense_2, name="timedense", trainable=True)(multiply_1)
 
-    dense_2 = layers.Dense(6,
-                    name='dense_2',
-                    activation='linear',
-                    activity_regularizer=None,
-                    bias_constraint=None,
-                    bias_initializer='zeros',
-                    bias_regularizer=None,
-                    kernel_constraint=None,
-                    kernel_initializer=keras.initializers.VarianceScaling(distribution='uniform', mode='fan_avg', scale=1.0, seed=None),
-                    kernel_regularizer=None,
-                    trainable=True,
-                    use_bias=True)
-    timedense = layers.TimeDistributed(dense_2, name='timedense', trainable=True)(multiply_1)
+    activation = layers.LeakyReLU(name="activation", alpha=0.30000001192092896, trainable=True)(
+        timedense
+    )
 
-    activation = layers.LeakyReLU(name='activation', alpha=0.30000001192092896, trainable=True)(timedense)
-
-    output_layer = layers.Flatten(name='out', data_format='channels_last', trainable=True)(activation)
+    output_layer = layers.Flatten(name="out", data_format="channels_last", trainable=True)(
+        activation
+    )
 
     # Compile model
-    model = keras.Model(inputs=[peptides_in, precursor_charge_in, collision_energy_in], outputs=output_layer)
-    model.compile(loss='masked_spectral_distance', optimizer='adam', metrics=['accuracy'])
+    model = keras.Model(
+        inputs=[peptides_in, precursor_charge_in, collision_energy_in], outputs=output_layer
+    )
+    model.compile(loss="masked_spectral_distance", optimizer="adam", metrics=["accuracy"])
 
     return model
 
 
-
-def build_frag_transformer_model_slice0( # pylint: disable=too-many-arguments, too-many-locals
-        num_layers, 
-        d_model, 
-        num_heads, 
-        d_ff, 
-        dropout_rate, 
-        vocab_size, 
-        max_len,
-    ):
+def build_frag_transformer_model_slice0(  # pylint: disable=too-many-arguments, too-many-locals
+    num_layers,
+    d_model,
+    num_heads,
+    d_ff,
+    dropout_rate,
+    vocab_size,
+    max_len,
+):
 
     # Transformer branch (peptide input)
-    peptides_in = tf.keras.layers.Input(shape=(max_len,), name='peptides_in')
-    collision_energy_in = keras.Input(name='collision_energy_in', dtype='float32', sparse=False, batch_input_shape=(None, 1))
-    precursor_charge_in = keras.Input(name='precursor_charge_in', dtype='float32', sparse=False, batch_input_shape=(None, 6))
+    peptides_in = tf.keras.layers.Input(shape=(max_len,), name="peptides_in")
+    collision_energy_in = keras.Input(
+        name="collision_energy_in", dtype="float32", sparse=False, batch_input_shape=(None, 1)
+    )
+    precursor_charge_in = keras.Input(
+        name="precursor_charge_in", dtype="float32", sparse=False, batch_input_shape=(None, 6)
+    )
 
     encoder = EncoderBlock(num_layers, d_model, num_heads, d_ff, vocab_size, max_len, dropout_rate)
 
@@ -417,37 +440,44 @@ def build_frag_transformer_model_slice0( # pylint: disable=too-many-arguments, t
     net = enc_output[:, 0, :]
     net = tf.keras.layers.Dropout(dropout_rate)(net)
 
-
     # Collision energy and precursor charge branch
-    meta_in = layers.Concatenate(name='meta_in', trainable=True, axis=-1)([collision_energy_in, precursor_charge_in])
-    meta_dense = layers.Dense(512,
-                    name='meta_dense',
-                    activation='linear',
-                    activity_regularizer=None,
-                    bias_constraint=None,
-                    bias_initializer='zeros',
-                    bias_regularizer=None,
-                    kernel_constraint=None,
-                    kernel_initializer=keras.initializers.VarianceScaling(distribution='uniform', mode='fan_avg', scale=1.0, seed=None),
-                    kernel_regularizer=None,
-                    trainable=True,
-                    use_bias=True)(meta_in)
+    meta_in = layers.Concatenate(name="meta_in", trainable=True, axis=-1)(
+        [collision_energy_in, precursor_charge_in]
+    )
+    meta_dense = layers.Dense(
+        512,
+        name="meta_dense",
+        activation="linear",
+        activity_regularizer=None,
+        bias_constraint=None,
+        bias_initializer="zeros",
+        bias_regularizer=None,
+        kernel_constraint=None,
+        kernel_initializer=keras.initializers.VarianceScaling(
+            distribution="uniform", mode="fan_avg", scale=1.0, seed=None
+        ),
+        kernel_regularizer=None,
+        trainable=True,
+        use_bias=True,
+    )(meta_in)
 
-    meta_dense_do = layers.Dropout(name='meta_dense_do', rate=0.3, noise_shape=None, seed=None, trainable=True)(meta_dense)
-
+    meta_dense_do = layers.Dropout(
+        name="meta_dense_do", rate=0.3, noise_shape=None, seed=None, trainable=True
+    )(meta_dense)
 
     # Joining branches
-    add_meta = layers.Multiply(name='add_meta', trainable=True)([net, meta_dense_do])
+    add_meta = layers.Multiply(name="add_meta", trainable=True)([net, meta_dense_do])
 
-    repeat = layers.RepeatVector(name='repeat', n=29, trainable=True)(add_meta)
-
+    repeat = layers.RepeatVector(name="repeat", n=29, trainable=True)(add_meta)
 
     # Warning: This was a 'CuDNNGRU' layer in the original 2019 model, it is now GRU.
     decoder = layers.GRU(
         512,
-        name='decoder',
-        kernel_initializer=keras.initializers.VarianceScaling(distribution='uniform', mode='fan_avg', scale=1.0, seed=None),
-        bias_initializer='zeros',
+        name="decoder",
+        kernel_initializer=keras.initializers.VarianceScaling(
+            distribution="uniform", mode="fan_avg", scale=1.0, seed=None
+        ),
+        bias_initializer="zeros",
         bias_regularizer=None,
         go_backwards=False,
         kernel_constraint=None,
@@ -460,181 +490,211 @@ def build_frag_transformer_model_slice0( # pylint: disable=too-many-arguments, t
         return_sequences=True,
         return_state=False,
         stateful=False,
-        trainable=True)(repeat)
+        trainable=True,
+    )(repeat)
 
+    dropout_3 = layers.Dropout(
+        name="dropout_3", rate=0.3, noise_shape=None, seed=None, trainable=True
+    )(decoder)
 
-    dropout_3 = layers.Dropout(name='dropout_3', rate=0.3, noise_shape=None, seed=None, trainable=True)(decoder)
+    permute_1 = layers.Permute(name="permute_1", dims=(2, 1), trainable=True)(dropout_3)
 
-    permute_1 = layers.Permute(name='permute_1', dims=(2,1), trainable=True)(dropout_3)
+    dense_1 = layers.Dense(
+        29,
+        name="dense_1",
+        activation="softmax",
+        activity_regularizer=None,
+        bias_constraint=None,
+        bias_initializer="zeros",
+        bias_regularizer=None,
+        kernel_constraint=None,
+        kernel_initializer=keras.initializers.VarianceScaling(
+            distribution="uniform", mode="fan_avg", scale=1.0, seed=None
+        ),
+        kernel_regularizer=None,
+        trainable=True,
+        use_bias=True,
+    )(permute_1)
 
-    dense_1 = layers.Dense(29,
-                    name='dense_1',
-                    activation='softmax',
-                    activity_regularizer=None,
-                    bias_constraint=None,
-                    bias_initializer='zeros',
-                    bias_regularizer=None,
-                    kernel_constraint=None,
-                    kernel_initializer=keras.initializers.VarianceScaling(distribution='uniform', mode='fan_avg', scale=1.0, seed=None),
-                    kernel_regularizer=None,
-                    trainable=True,
-                    use_bias=True)(permute_1)
+    permute_2 = layers.Permute(name="permute_2", dims=(2, 1), trainable=True)(dense_1)
 
-    permute_2 = layers.Permute(name='permute_2', dims=(2,1), trainable=True)(dense_1)
+    multiply_1 = layers.Multiply(name="multiply_1", trainable=True)([permute_2, dropout_3])
 
-    multiply_1 = layers.Multiply(name='multiply_1', trainable=True)([permute_2, dropout_3])
+    dense_2 = layers.Dense(
+        6,
+        name="dense_2",
+        activation="linear",
+        activity_regularizer=None,
+        bias_constraint=None,
+        bias_initializer="zeros",
+        bias_regularizer=None,
+        kernel_constraint=None,
+        kernel_initializer=keras.initializers.VarianceScaling(
+            distribution="uniform", mode="fan_avg", scale=1.0, seed=None
+        ),
+        kernel_regularizer=None,
+        trainable=True,
+        use_bias=True,
+    )
+    timedense = layers.TimeDistributed(dense_2, name="timedense", trainable=True)(multiply_1)
 
-    dense_2 = layers.Dense(6,
-                    name='dense_2',
-                    activation='linear',
-                    activity_regularizer=None,
-                    bias_constraint=None,
-                    bias_initializer='zeros',
-                    bias_regularizer=None,
-                    kernel_constraint=None,
-                    kernel_initializer=keras.initializers.VarianceScaling(distribution='uniform', mode='fan_avg', scale=1.0, seed=None),
-                    kernel_regularizer=None,
-                    trainable=True,
-                    use_bias=True)
-    timedense = layers.TimeDistributed(dense_2, name='timedense', trainable=True)(multiply_1)
+    activation = layers.LeakyReLU(name="activation", alpha=0.30000001192092896, trainable=True)(
+        timedense
+    )
 
-    activation = layers.LeakyReLU(name='activation', alpha=0.30000001192092896, trainable=True)(timedense)
-
-    output_layer = layers.Flatten(name='out', data_format='channels_last', trainable=True)(activation)
+    output_layer = layers.Flatten(name="out", data_format="channels_last", trainable=True)(
+        activation
+    )
 
     # Compile model
-    model = keras.Model(inputs=[peptides_in, precursor_charge_in, collision_energy_in], outputs=output_layer)
-    model.compile(loss='masked_spectral_distance', optimizer='adam', metrics=['accuracy'])
+    model = keras.Model(
+        inputs=[peptides_in, precursor_charge_in, collision_energy_in], outputs=output_layer
+    )
+    model.compile(loss="masked_spectral_distance", optimizer="adam", metrics=["accuracy"])
 
     return model
 
 
-def build_model_transformer_encoder_simple_prediction_head( # pylint: disable=too-many-arguments, too-many-locals
-        num_layers, 
-        d_model, 
-        num_heads, 
-        d_ff, 
-        dropout_rate, 
-        vocab_size, 
-        max_len,
-    ):
+def build_model_transformer_encoder_simple_prediction_head(  # pylint: disable=too-many-arguments, too-many-locals
+    num_layers,
+    d_model,
+    num_heads,
+    d_ff,
+    dropout_rate,
+    vocab_size,
+    max_len,
+):
 
     # Transformer branch (peptide input)
-    peptides_in = tf.keras.layers.Input(shape=(max_len,), name='peptides_in')
-    collision_energy_in = keras.Input(name='collision_energy_in', dtype='float32', sparse=False, batch_input_shape=(None, 1))
-    precursor_charge_in = keras.Input(name='precursor_charge_in', dtype='float32', sparse=False, batch_input_shape=(None, 6))
+    peptides_in = tf.keras.layers.Input(shape=(max_len,), name="peptides_in")
+    collision_energy_in = keras.Input(
+        name="collision_energy_in", dtype="float32", sparse=False, batch_input_shape=(None, 1)
+    )
+    precursor_charge_in = keras.Input(
+        name="precursor_charge_in", dtype="float32", sparse=False, batch_input_shape=(None, 6)
+    )
 
     encoder = EncoderBlock(num_layers, d_model, num_heads, d_ff, vocab_size, max_len, dropout_rate)
 
     enc_output = encoder(peptides_in)  # (batch_size, inp_seq_len, d_model)
 
-    flat_enc_output = layers.Flatten(
-        name='flat_enc_output', trainable=True)(enc_output)
-    dense_reduce = layers.Dense(
-        512, name='dense_reduce', trainable=True, activation='linear')(flat_enc_output)
+    flat_enc_output = layers.Flatten(name="flat_enc_output", trainable=True)(enc_output)
+    dense_reduce = layers.Dense(512, name="dense_reduce", trainable=True, activation="linear")(
+        flat_enc_output
+    )
 
     net = tf.keras.layers.Dropout(dropout_rate)(dense_reduce)
 
     # Collision energy and precursor charge branch
-    meta_in = layers.Concatenate(
-        name='meta_in', trainable=True, axis=-1)([collision_energy_in, precursor_charge_in])
-    meta_dense = layers.Dense(512,
-                              name='meta_dense',
-                              activation='linear',
-                              activity_regularizer=None,
-                              bias_constraint=None,
-                              bias_initializer='zeros',
-                              bias_regularizer=None,
-                              kernel_constraint=None,
-                              kernel_initializer=keras.initializers.VarianceScaling(
-                                  distribution='uniform', mode='fan_avg', scale=1.0, seed=None),
-                              kernel_regularizer=None,
-                              trainable=True,
-                              use_bias=True)(meta_in)
+    meta_in = layers.Concatenate(name="meta_in", trainable=True, axis=-1)(
+        [collision_energy_in, precursor_charge_in]
+    )
+    meta_dense = layers.Dense(
+        512,
+        name="meta_dense",
+        activation="linear",
+        activity_regularizer=None,
+        bias_constraint=None,
+        bias_initializer="zeros",
+        bias_regularizer=None,
+        kernel_constraint=None,
+        kernel_initializer=keras.initializers.VarianceScaling(
+            distribution="uniform", mode="fan_avg", scale=1.0, seed=None
+        ),
+        kernel_regularizer=None,
+        trainable=True,
+        use_bias=True,
+    )(meta_in)
 
     meta_dense_do = layers.Dropout(
-        name='meta_dense_do', rate=0.3, noise_shape=None, seed=None, trainable=True)(meta_dense)
+        name="meta_dense_do", rate=0.3, noise_shape=None, seed=None, trainable=True
+    )(meta_dense)
 
     # Joining branches
-    add_meta = layers.Multiply(
-        name='add_meta', trainable=True)([net, meta_dense_do])
+    add_meta = layers.Multiply(name="add_meta", trainable=True)([net, meta_dense_do])
 
-    repeat = layers.RepeatVector(name='repeat', n=29, trainable=True)(add_meta)
+    repeat = layers.RepeatVector(name="repeat", n=29, trainable=True)(add_meta)
 
     # Warning: This was a 'CuDNNGRU' layer in the original 2019 model, it is now GRU.
     decoder = layers.GRU(
         512,
-        name='decoder',
+        name="decoder",
         kernel_initializer=keras.initializers.VarianceScaling(
-            distribution='uniform', mode='fan_avg', scale=1.0, seed=None),
-        bias_initializer='zeros',
+            distribution="uniform", mode="fan_avg", scale=1.0, seed=None
+        ),
+        bias_initializer="zeros",
         bias_regularizer=None,
         go_backwards=False,
         kernel_constraint=None,
         kernel_regularizer=None,
         recurrent_constraint=None,
-        recurrent_initializer=keras.initializers.Orthogonal(
-            gain=1.0, seed=None),
+        recurrent_initializer=keras.initializers.Orthogonal(gain=1.0, seed=None),
         recurrent_regularizer=None,
         activity_regularizer=None,
         bias_constraint=None,
         return_sequences=True,
         return_state=False,
         stateful=False,
-        trainable=True)(repeat)
+        trainable=True,
+    )(repeat)
 
     dropout_3 = layers.Dropout(
-        name='dropout_3', rate=0.3, noise_shape=None, seed=None, trainable=True)(decoder)
+        name="dropout_3", rate=0.3, noise_shape=None, seed=None, trainable=True
+    )(decoder)
 
-    permute_1 = layers.Permute(
-        name='permute_1', dims=(2, 1), trainable=True)(dropout_3)
+    permute_1 = layers.Permute(name="permute_1", dims=(2, 1), trainable=True)(dropout_3)
 
-    dense_1 = layers.Dense(29,
-                           name='dense_1',
-                           activation='softmax',
-                           activity_regularizer=None,
-                           bias_constraint=None,
-                           bias_initializer='zeros',
-                           bias_regularizer=None,
-                           kernel_constraint=None,
-                           kernel_initializer=keras.initializers.VarianceScaling(
-                               distribution='uniform', mode='fan_avg', scale=1.0, seed=None),
-                           kernel_regularizer=None,
-                           trainable=True,
-                           use_bias=True)(permute_1)
+    dense_1 = layers.Dense(
+        29,
+        name="dense_1",
+        activation="softmax",
+        activity_regularizer=None,
+        bias_constraint=None,
+        bias_initializer="zeros",
+        bias_regularizer=None,
+        kernel_constraint=None,
+        kernel_initializer=keras.initializers.VarianceScaling(
+            distribution="uniform", mode="fan_avg", scale=1.0, seed=None
+        ),
+        kernel_regularizer=None,
+        trainable=True,
+        use_bias=True,
+    )(permute_1)
 
-    permute_2 = layers.Permute(
-        name='permute_2', dims=(2, 1), trainable=True)(dense_1)
+    permute_2 = layers.Permute(name="permute_2", dims=(2, 1), trainable=True)(dense_1)
 
-    multiply_1 = layers.Multiply(
-        name='multiply_1', trainable=True)([permute_2, dropout_3])
+    multiply_1 = layers.Multiply(name="multiply_1", trainable=True)([permute_2, dropout_3])
 
-    dense_2 = layers.Dense(6,
-                           name='dense_2',
-                           activation='linear',
-                           activity_regularizer=None,
-                           bias_constraint=None,
-                           bias_initializer='zeros',
-                           bias_regularizer=None,
-                           kernel_constraint=None,
-                           kernel_initializer=keras.initializers.VarianceScaling(
-                               distribution='uniform', mode='fan_avg', scale=1.0, seed=None),
-                           kernel_regularizer=None,
-                           trainable=True,
-                           use_bias=True)
-    timedense = layers.TimeDistributed(
-        dense_2, name='timedense', trainable=True)(multiply_1)
+    dense_2 = layers.Dense(
+        6,
+        name="dense_2",
+        activation="linear",
+        activity_regularizer=None,
+        bias_constraint=None,
+        bias_initializer="zeros",
+        bias_regularizer=None,
+        kernel_constraint=None,
+        kernel_initializer=keras.initializers.VarianceScaling(
+            distribution="uniform", mode="fan_avg", scale=1.0, seed=None
+        ),
+        kernel_regularizer=None,
+        trainable=True,
+        use_bias=True,
+    )
+    timedense = layers.TimeDistributed(dense_2, name="timedense", trainable=True)(multiply_1)
 
-    activation = layers.LeakyReLU(
-        name='activation', alpha=0.30000001192092896, trainable=True)(timedense)
+    activation = layers.LeakyReLU(name="activation", alpha=0.30000001192092896, trainable=True)(
+        timedense
+    )
 
-    output_layer = layers.Flatten(
-        name='out', data_format='channels_last', trainable=True)(activation)
+    output_layer = layers.Flatten(name="out", data_format="channels_last", trainable=True)(
+        activation
+    )
 
     # Compile model
-    model = keras.Model(inputs=[
-                        peptides_in, precursor_charge_in, collision_energy_in], outputs=output_layer)
-    model.compile(loss='masked_spectral_distance',
-                  optimizer='adam', metrics=['accuracy'])
+    model = keras.Model(
+        inputs=[peptides_in, precursor_charge_in, collision_energy_in], outputs=output_layer
+    )
+    model.compile(loss="masked_spectral_distance", optimizer="adam", metrics=["accuracy"])
 
     return model

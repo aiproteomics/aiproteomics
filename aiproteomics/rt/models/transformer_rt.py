@@ -10,8 +10,7 @@ def get_angles(pos, i, d_model):
 # Position
 def positional_encoding(position, d_model):
     angle_rads = get_angles(
-        np.arange(position)[:, np.newaxis], np.arange(
-            d_model)[np.newaxis, :], d_model
+        np.arange(position)[:, np.newaxis], np.arange(d_model)[np.newaxis, :], d_model
     )
 
     # apply sin to even indices in the array; 2i
@@ -22,7 +21,9 @@ def positional_encoding(position, d_model):
 
     pos_encoding = angle_rads[np.newaxis, ...]
 
-    return tf.cast(pos_encoding, dtype=tf.float32)  # pylint: disable= no-value-for-parameter, unexpected-keyword-arg
+    return tf.cast(
+        pos_encoding, dtype=tf.float32
+    )  # pylint: disable= no-value-for-parameter, unexpected-keyword-arg
 
 
 # Masking
@@ -41,14 +42,14 @@ def scaled_dot_product_attention(q, k, v, mask):
 
     q, k, v must have matching leading dimensions.
     k, v must have matching penultimate dimension, i.e.: seq_len_k = seq_len_v.
-    The mask has different shapes depending on its type(padding or look ahead) 
+    The mask has different shapes depending on its type(padding or look ahead)
     but it must be broadcastable for addition.
 
     Args:
         q: query shape == (..., seq_len_q, depth)
         k: key shape == (..., seq_len_k, depth)
         v: value shape == (..., seq_len_v, depth_v)
-        mask: Float tensor with shape broadcastable 
+        mask: Float tensor with shape broadcastable
             to (..., seq_len_q, seq_len_k). Defaults to None.
 
     Returns:
@@ -118,9 +119,7 @@ class multi_head_attention(tf.keras.layers.Layer):
 
         # scaled_attention.shape == (batch_size, num_heads, seq_len_q, depth)
         # attention_weights.shape == (batch_size, num_heads, seq_len_q, seq_len_k)
-        scaled_attention, attention_weights = scaled_dot_product_attention(
-            q, k, v, mask
-        )
+        scaled_attention, attention_weights = scaled_dot_product_attention(q, k, v, mask)
 
         scaled_attention = tf.transpose(
             scaled_attention, perm=[0, 2, 1, 3]
@@ -157,17 +156,16 @@ def build_rt_transformer_model(  # pylint: disable=too-many-arguments
     max_len,
 ):
 
-    coded_input = tf.keras.layers.Input(shape=(max_len,), name='input')
+    coded_input = tf.keras.layers.Input(shape=(max_len,), name="input")
 
-    encoder = EncoderBlock(num_layers, d_model, num_heads,
-                           d_ff, vocab_size, max_len, dropout_rate)
+    encoder = EncoderBlock(num_layers, d_model, num_heads, d_ff, vocab_size, max_len, dropout_rate)
 
     enc_output = encoder(coded_input)  # (batch_size, inp_seq_len, d_model)
 
     net = enc_output[:, 0, :]
 
     net = tf.keras.layers.Dropout(dropout_rate)(net)
-    net = tf.keras.layers.Dense(1, activation="linear", name='classifier')(net)
+    net = tf.keras.layers.Dense(1, activation="linear", name="classifier")(net)
 
     return tf.keras.Model(coded_input, net)
 
@@ -196,9 +194,7 @@ class EncoderLayer(tf.keras.layers.Layer):
 
         ffn_output = self.ffn(out1)  # (batch_size, input_seq_len, d_model)
         ffn_output = self.dropout2(ffn_output, training=training)
-        out2 = self.layernorm2(
-            out1 + ffn_output
-        )  # (batch_size, input_seq_len, d_model)
+        out2 = self.layernorm2(out1 + ffn_output)  # (batch_size, input_seq_len, d_model)
 
         return out2
 
@@ -231,12 +227,9 @@ class EncoderBlock(tf.keras.layers.Layer):
         """ TP END """
 
         self.embedding = tf.keras.layers.Embedding(input_vocab_size, d_model)
-        self.pos_encoding = positional_encoding(
-            maximum_position_encoding, d_model)
+        self.pos_encoding = positional_encoding(maximum_position_encoding, d_model)
 
-        self.enc_layers = [
-            EncoderLayer(d_model, num_heads, dff, rate) for _ in range(num_layers)
-        ]
+        self.enc_layers = [EncoderLayer(d_model, num_heads, dff, rate) for _ in range(num_layers)]
 
         self.dropout = tf.keras.layers.Dropout(rate)
 
@@ -287,6 +280,6 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
     def __call__(self, step):
         arg1 = tf.math.rsqrt(step)
-        arg2 = step * (self.warmup_steps ** -1.5)
+        arg2 = step * (self.warmup_steps**-1.5)
 
         return tf.math.rsqrt(self.d_model) * tf.math.minimum(arg1, arg2)

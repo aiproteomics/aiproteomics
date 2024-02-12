@@ -60,7 +60,9 @@ class Attention(Layer):
 
         self.built = True
 
-    def compute_mask(self, input, input_mask=None):  # pylint: disable=arguments-renamed, redefined-builtin, unused-argument
+    def compute_mask(
+        self, input, input_mask=None
+    ):  # pylint: disable=arguments-renamed, redefined-builtin, unused-argument
         return None
 
     def call(self, x, mask=None):  # pylint: disable=arguments-differ

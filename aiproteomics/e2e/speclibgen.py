@@ -5,17 +5,27 @@ from aiproteomics.e2e import convert_to_msp, tensorize
 from aiproteomics.e2e.constants import MAX_FRAG_CHARGE, MAX_NLOSSES
 
 
-def _predict(data, model_frag, model_irt, batch_size_frag=None, batch_size_iRT=None, iRT_rescaling_mean=None, iRT_rescaling_var=None):
+def _predict(
+    data,
+    model_frag,
+    model_irt,
+    batch_size_frag=None,
+    batch_size_iRT=None,
+    iRT_rescaling_mean=None,
+    iRT_rescaling_var=None,
+):
     # Get fragmentation model predictions
-    x = [data['sequence_integer'], data['precursor_charge_onehot'],
-         data['collision_energy_aligned_normed']]
-    prediction = model_frag.predict(
-        x, verbose=False, batch_size=batch_size_frag)
+    x = [
+        data["sequence_integer"],
+        data["precursor_charge_onehot"],
+        data["collision_energy_aligned_normed"],
+    ]
+    prediction = model_frag.predict(x, verbose=False, batch_size=batch_size_frag)
     data["intensities_pred"] = prediction
     data = sanitize.sanitize_prediction_output(data)
 
     # Get iRT model predictions
-    x = data['sequence_integer']
+    x = data["sequence_integer"]
     prediction = model_irt.predict(x, verbose=False, batch_size=batch_size_iRT)
     data["iRT"] = prediction * np.sqrt(iRT_rescaling_var) + iRT_rescaling_mean
 
@@ -58,7 +68,16 @@ def _read_peptides_csv(fname):
     return data
 
 
-def csv_to_msp(in_csv_fname, out_msp_fname, model_frag, model_irt, batch_size_frag, batch_size_iRT, iRT_rescaling_mean, iRT_rescaling_var):
+def csv_to_msp(
+    in_csv_fname,
+    out_msp_fname,
+    model_frag,
+    model_irt,
+    batch_size_frag,
+    batch_size_iRT,
+    iRT_rescaling_mean,
+    iRT_rescaling_var,
+):
     """
     Outputs spectral library in msp format, for the peptide sequence list in the provided csv file
 
@@ -83,14 +102,15 @@ def csv_to_msp(in_csv_fname, out_msp_fname, model_frag, model_irt, batch_size_fr
     """
 
     data = _read_peptides_csv(in_csv_fname)
-    data = _predict(data,
-                    model_frag,
-                    model_irt,
-                    batch_size_frag=batch_size_frag,
-                    batch_size_iRT=batch_size_iRT,
-                    iRT_rescaling_mean=iRT_rescaling_mean,
-                    iRT_rescaling_var=iRT_rescaling_var
-                    )
+    data = _predict(
+        data,
+        model_frag,
+        model_irt,
+        batch_size_frag=batch_size_frag,
+        batch_size_iRT=batch_size_iRT,
+        iRT_rescaling_mean=iRT_rescaling_mean,
+        iRT_rescaling_var=iRT_rescaling_var,
+    )
 
     c = convert_to_msp.Converter(data, out_msp_fname)
     c.convert()
