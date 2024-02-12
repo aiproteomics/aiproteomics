@@ -17,8 +17,7 @@ def reshape_dims(array):
     assert dims == 174
 
     return array.reshape(
-        [array.shape[0], MAX_SEQUENCE - 1,
-            len(ION_TYPES), MAX_NLOSSES, MAX_FRAG_CHARGE]
+        [array.shape[0], MAX_SEQUENCE - 1, len(ION_TYPES), MAX_NLOSSES, MAX_FRAG_CHARGE]
     )
 
 
@@ -51,7 +50,7 @@ def mask_outofrange(array, lengths, mask=-1.0):
     sequences will be shorter, and so the unused remainder of the array is masked.
     """
     for i in range(array.shape[0]):
-        array[i, lengths[i] - 1:, :, :, :] = mask
+        array[i, lengths[i] - 1 :, :, :, :] = mask
     return array
 
 
@@ -74,7 +73,7 @@ def mask_outofcharge(array, charges, mask=-1.0):
     """
     for i in range(array.shape[0]):
         if charges[i] < 3:
-            array[i, :, :, :, charges[i]:] = mask
+            array[i, :, :, :, charges[i] :] = mask
     return array
 
 
