@@ -13,11 +13,14 @@ tf2onnx = "^1.13.0"
 pandas = "^1.5.3"
 chardet = "^5.1.0"
 pyteomics = "^4.5.6"
-pydot = "^1.4.2"
 graphviz = "^0.20.1"
 lxml = "^4.9.2"
 seaborn = "^0.12.2"
 tensorflow-datasets = "^4.9.4"
+
+
+[tool.poetry.group.dev]
+optional = true
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
@@ -25,9 +28,12 @@ pytest-cov = "^4.0.0"
 bump2version = "^1.0.1"
 prospector = "^1.8.4"
 pyroma = ">=2.4"
-jupyter = "^1.0.0"
-jupyterlab = "^3.6.1"
 
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
 mkdocs = ">=1.1.2,<2.0.0"
 mkdocs-material = ">=8.2.7,<9.0.0"
 mkdocstrings = ">=0.18.1"
@@ -35,6 +41,16 @@ mdx-include = ">=1.4.1,<2.0.0"
 mkdocs-markdownextradata-plugin = ">=0.1.7,<0.3.0"
 jinja2 = "3.0.3"
 black = "^24.1.1"
+
+
+[tool.poetry.group.demo]
+optional = true
+
+[tool.poetry.group.demo.dependencies]
+jupyter = "^1.0.0"
+jupyterlab = "^3.6.1"
+pydot = "^2.0.0"
+graphviz = "^0.20.1"
 
 
 [build-system]
