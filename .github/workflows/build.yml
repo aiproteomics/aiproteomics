@@ -35,7 +35,7 @@ jobs:
         uses: snok/install-poetry@v1
       - name: Install dependencies
         run: |
-          poetry install
+          poetry install --with dev
       - name: Run unit tests
         run: poetry run pytest -v
       - name: Verify that we can build the package
@@ -62,7 +62,7 @@ jobs:
         uses: snok/install-poetry@v1
       - name: Install dependencies
         run: |
-          poetry install
+          poetry install --with dev
       - name: Check style against standards using prospector
         run: poetry run prospector
 
