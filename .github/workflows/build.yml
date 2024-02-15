@@ -84,5 +84,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: run test
-        run: python prosit_fragmentation/prosit_fragmentation_dataset_builder_test.py
+        run: poetry run python prosit_fragmentation/prosit_fragmentation_dataset_builder_test.py
 
