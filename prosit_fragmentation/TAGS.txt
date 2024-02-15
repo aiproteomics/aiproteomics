@@ -1,0 +1,4 @@
+content.data-type.categorical # Contains categorical data.
+content.subject.biology # Relates to biology.
+content.subject.health # Relates to health.
+
