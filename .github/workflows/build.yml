@@ -3,12 +3,12 @@ name: Python package
 on:
   push:
     branches:
-    - main
+      - main
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
     branches:
-    - main
-    
+      - main
+
 
 jobs:
 
@@ -18,8 +18,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-latest', 'macos-latest']
-        python-version: ['3.10']
+        os: [ 'ubuntu-latest', 'macos-latest' ]
+        python-version: [ '3.10' ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -41,8 +41,7 @@ jobs:
       - name: Verify that we can build the package
         run: poetry build
       - name: run dataset test
-        run: poetry run python prosit_fragmentation/prosit_fragmentation_dataset_builder_test.py
-
+        run: poetry run python -m prosit_fragmentation.prosit_fragmentation_dataset_builder_test
   lint:
     name: Linting build
     runs-on: ubuntu-latest
