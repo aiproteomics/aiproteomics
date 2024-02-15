@@ -77,3 +77,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  dataset-test:
+    name: dataset test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: run test
+        run: python prosit_fragmentation/prosit_fragmentation_dataset_builder_test.py
+
