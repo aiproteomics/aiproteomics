@@ -4,14 +4,20 @@ import h5py
 import tensorflow_datasets as tfds
 import tensorflow as tf
 
-# TODO(AIProteomicsProsit1Frag): Markdown description  that will appear on the catalog page.
 _DESCRIPTION = """
 Prosit 1.0 training and holdout dataset, fetched from 
 https://figshare.com/articles/dataset/ProteomeTools_-_Prosit_fragmentation_-_Data/6860261
 """
 
-# TODO(AIProteomicsProsit1Frag): BibTeX citation
 _CITATION = """
+@article{Gessulat2018,
+author = "Siegfried Gessulat",
+title = "{ProteomeTools - Prosit fragmentation - Data}",
+year = "2018",
+month = "11",
+url = "https://figshare.com/articles/dataset/ProteomeTools_-_Prosit_fragmentation_-_Data/6860261",
+doi = "10.6084/m9.figshare.6860261.v1"
+}
 """
 
 BATCH_SIZE = int(1e5)
