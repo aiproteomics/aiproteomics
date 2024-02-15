@@ -32,3 +32,6 @@ env
 env3
 venv
 venv3
+
+# Poetry lock file
+poetry.lock
