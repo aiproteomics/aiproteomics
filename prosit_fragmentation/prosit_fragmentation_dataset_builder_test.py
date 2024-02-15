@@ -7,7 +7,6 @@ import tensorflow_datasets as tfds
 class PrositFragmentationTest(tfds.testing.DatasetBuilderTestCase):
     """Tests for prosit_fragmentation dataset."""
 
-    # TODO(prosit_fragmentation):
     DATASET_CLASS = prosit_fragmentation_dataset_builder.Builder
     SPLITS = {
         "train": 100,  # Number of fake train example
