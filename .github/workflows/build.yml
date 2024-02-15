@@ -40,6 +40,8 @@ jobs:
         run: poetry run pytest -v
       - name: Verify that we can build the package
         run: poetry build
+      - name: run dataset test
+        run: poetry run python prosit_fragmentation/prosit_fragmentation_dataset_builder_test.py
 
   lint:
     name: Linting build
@@ -77,12 +79,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-  dataset-test:
-    name: dataset test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: run test
-        run: poetry run python prosit_fragmentation/prosit_fragmentation_dataset_builder_test.py
 
