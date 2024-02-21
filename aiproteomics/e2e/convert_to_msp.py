@@ -139,6 +139,36 @@ class Converter:
         return spec
 
 
+def convert_to_msp(data):
+    """
+    Convert the given data frame of prediction data into MSP speclib format
+    """
+
+    IONS = get_ions().reshape(174, -1).flatten()
+    speclibtxt = ''
+    for i in range(data["iRT"].shape[0]):
+        aIntensity = data["intensities_pred"][i]
+        sel = np.where(aIntensity > 0)
+        aIntensity = aIntensity[sel]
+        collision_energy = data["collision_energy_aligned_normed"][i] * 100
+        iRT = np.squeeze(data["iRT"][i])
+        aMass = data["masses_pred"][i][sel]
+        precursor_charge = data["precursor_charge_onehot"][i].argmax() + 1
+        sequence_integer = data["sequence_integer"][i]
+        aIons = IONS[sel]
+        spec = Spectrum(
+            aIntensity,
+            collision_energy,
+            iRT,
+            aMass,
+            precursor_charge,
+            sequence_integer,
+            aIons,
+        )
+
+        speclibtxt += str(spec) + '\n'
+    return speclibtxt
+
 class Spectrum:
     def __init__(
         self,
