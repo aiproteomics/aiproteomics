@@ -68,7 +68,7 @@ def _read_peptides_csv(fname, chunksize):
 
 
 
-def csv_to_msp(
+def csv_to_speclib(
     in_csv_fname,
     out_msp_fname,
     model_frag,
@@ -78,6 +78,7 @@ def csv_to_msp(
     iRT_rescaling_mean,
     iRT_rescaling_var,
     chunksize=10000,
+    fmt='msp'
 ):
     """
     Outputs spectral library in msp format, for the peptide sequence list in the provided csv file
@@ -109,6 +110,9 @@ def csv_to_msp(
     # Read in peptide rows from the input csv file, 'chunksize' rows at a time
     with open(out_msp_fname, 'w', encoding='utf-8') as speclibout:
 
+        if fmt == 'tsv':
+            speclibout.write(convert_to_msp.get_tsv_format_header())
+
         for peptidedata in _read_peptides_csv(in_csv_fname, chunksize=chunksize):
             # Run fragmentation and iRT prediction models for this chunk of peptides
             predictiondata = _predict(
@@ -122,7 +126,7 @@ def csv_to_msp(
             )
 
             # Convert the predictions to the chosen speclib format text
-            speclibtxt = convert_to_msp.convert_to_msp(predictiondata)
+            speclibtxt = convert_to_msp.convert_to_speclib(predictiondata, fmt=fmt)
             speclibout.write(speclibtxt)
     
             print(len(speclibtxt))

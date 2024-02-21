@@ -104,47 +104,14 @@ def generate_mod_strings(sequence_integer):
     return returnString_mods, returnString_modString
 
 
-class Converter:
-    def __init__(self, data, out_path):
-        self.out_path = out_path
-        self.data = data
-
-    def convert(self):
-        IONS = get_ions().reshape(174, -1).flatten()
-        with open(self.out_path, mode="w", encoding="utf-8") as f:
-            first_spec = True
-            for i in range(self.data["iRT"].shape[0]):
-                aIntensity = self.data["intensities_pred"][i]
-                sel = np.where(aIntensity > 0)
-                aIntensity = aIntensity[sel]
-                collision_energy = self.data["collision_energy_aligned_normed"][i] * 100
-                iRT = np.squeeze(self.data["iRT"][i])
-                aMass = self.data["masses_pred"][i][sel]
-                precursor_charge = self.data["precursor_charge_onehot"][i].argmax() + 1
-                sequence_integer = self.data["sequence_integer"][i]
-                aIons = IONS[sel]
-                spec = Spectrum(
-                    aIntensity,
-                    collision_energy,
-                    iRT,
-                    aMass,
-                    precursor_charge,
-                    sequence_integer,
-                    aIons,
-                )
-                if not first_spec:
-                    f.write("\n")
-                first_spec = False
-                f.write(str(spec))
-        return spec
-
-
-def convert_to_msp(data):
+def convert_to_speclib(data, fmt='tsv'):
     """
-    Convert the given data frame of prediction data into MSP speclib format
+    Convert the given data frame of prediction data into a speclib format.
+    Supported formats are currently 'msp' and 'tsv'
     """
 
     IONS = get_ions().reshape(174, -1).flatten()
+
     speclibtxt = ''
     for i in range(data["iRT"].shape[0]):
         aIntensity = data["intensities_pred"][i]
@@ -166,8 +133,15 @@ def convert_to_msp(data):
             aIons,
         )
 
-        speclibtxt += str(spec) + '\n'
+        if fmt == 'msp':
+            speclibtxt += spec.to_msp()
+        elif fmt == 'tsv':
+            speclibtxt += spec.to_tsv()
+        else:
+            raise ValueError('Format not supported. Supported formats are msp and tsv')
+
     return speclibtxt
+
 
 class Spectrum:
     def __init__(
@@ -196,7 +170,8 @@ class Spectrum:
             charge=int(self.precursor_charge),
         )
 
-    def __str__(self):
+
+    def to_msp(self):
         s = "Name: {sequence}/{charge}\nMW: {precursor_mass}\n"
         s += "Comment: Parent={precursor_mass} Collision_energy={collision_energy} "
         s += "Mods={mod} ModString={sequence}//{mod_string}/{charge} "
@@ -216,4 +191,68 @@ class Spectrum:
         for mz, intensity, ion in zip(self.aMass, self.aIntensity, self.aIons):
             s += "\n" + str(mz) + "\t" + str(intensity) + '\t"'
             s += ion.decode("UTF-8").replace("(", "^").replace("+", "") + '/0.0ppm"'
+        return s + '\n'
+
+
+    def to_tsv(self):
+        # Remove oxidation notation from sequence string
+        peptide_seq = self.sequence.replace("M(ox)", "M")
+
+        s = ''
+
+        # Add rows for each fragment
+        for mz, intensity, ion in zip(self.aMass, self.aIntensity, self.aIons):
+            # TODO: Make this values->string->values more sane
+            ion_str = ion.decode('UTF-8')
+            fragment_type = ion_str[0]
+            fragment_series_number = ion_str.split('(')[0][1:]
+            if '(' in ion_str:
+                fragment_charge = ion_str.split('(')[1].split('+')[0] # This is horrible
+            else:
+                fragment_charge = '1'
+            annotation = fragment_type + fragment_series_number + '^' + fragment_charge
+
+            # Collect the values for each column describing a particular peak
+            row = [
+                str(self.precursor_mass),
+                str(mz),
+                annotation,
+                'NA',
+                'NA',
+                peptide_seq,
+                peptide_seq,
+                str(self.precursor_charge),
+                str(intensity),
+                str(self.iRT),
+                'NA',
+                fragment_type,
+                fragment_charge,
+                fragment_series_number,
+                'NA'
+            ]
+
+            # Add the row to the output string
+            s += '\t'.join(row) + '\n'
+            
         return s
+
+def get_tsv_format_header():
+    tsv_columns = [
+        "PrecursorMz",
+        "ProductMz",
+        "Annotation",
+        "ProteinId",
+        "GeneName",
+        "PeptideSequence",
+        "ModifiedPeptideSequence",
+        "PrecursorCharge",
+        "LibraryIntensity",
+        "NormalizedRetentionTime",
+        "PrecursorIonMobility",
+        "FragmentType",
+        "FragmentCharge",
+        "FragmentSeriesNumber",
+        "FragmentLossType"
+    ]
+    return '\t'.join(tsv_columns) + '\n'
+
