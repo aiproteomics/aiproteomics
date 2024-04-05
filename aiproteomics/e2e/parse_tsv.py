@@ -1,28 +1,5 @@
-import sys
 import csv
-
-PROSIT_ALPHABET = [
-    "A",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "K",
-    "L",
-    "M",
-    "N",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "V",
-    "W",
-    "Y"
-]
+from aiproteomics.e2e import constants
 
 def sequence_has_valid_alphabet(seq, alpha):
     for char in seq:
@@ -40,7 +17,7 @@ def extract_sequences(
         max_peptide_len=30,
         charges=[1,2,3],
         collision_energies=[20],
-        allowed_alphabet=PROSIT_ALPHABET):
+        allowed_alphabet=constants.ALPHABET):
 
 
     gene_name_map = {}
@@ -85,4 +62,3 @@ def extract_sequences(
                 for precursor_charge in charges:
                     outfile.write(f'{protein_id},{gene_name},{seq},{collision_energy},{precursor_charge}\n')
 
-extract_sequences('uniprot_human_CandI_2023_digest.tsv', 'uniprot_human_2023_prosit.csv')
