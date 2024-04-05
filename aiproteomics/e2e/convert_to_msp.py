@@ -104,7 +104,7 @@ def generate_mod_strings(sequence_integer):
     return returnString_mods, returnString_modString
 
 
-def convert_to_speclib(data, fmt='tsv'):
+def convert_to_speclib(data, fmt='tsv', intensity_scaling=10000, unknown_value_str='NA'):
     """
     Convert the given data frame of prediction data into a speclib format.
     Supported formats are currently 'msp' and 'tsv'
@@ -114,25 +114,51 @@ def convert_to_speclib(data, fmt='tsv'):
 
     speclibtxt = ''
     for i in range(data["iRT"].shape[0]):
+        # Get the intensity, ion and mass for all positive intensities
         aIntensity = data["intensities_pred"][i]
         sel = np.where(aIntensity > 0)
         aIntensity = aIntensity[sel]
-        collision_energy = data["collision_energy_aligned_normed"][i] * 100
-        iRT = np.squeeze(data["iRT"][i])
+        aIons = IONS[sel]
         aMass = data["masses_pred"][i][sel]
+
+        # Get the original inputs to the fragmentation model
+        collision_energy = data["collision_energy_aligned_normed"][i] * 100
         precursor_charge = data["precursor_charge_onehot"][i].argmax() + 1
         sequence_integer = data["sequence_integer"][i]
-        aIons = IONS[sel]
+
+        # Get the predicted normalized retention time and ion mobility
+        # for this sequence (if available)
+        if "iRT" in data:
+            iRT = np.squeeze(data["iRT"][i])
+        else:
+            iRT = None
+
+        if "ccs" in data:
+            ccs = np.squeeze(data["ccs"][i])
+        else:
+            ccs = None
+
+        # If available, use the protein id and gene name in the spec lib
+        protein_id = data["protein_id"][i]
+        gene_name = data["gene_name"][i]
+
+        # Build a predicted Spectrum representation for this sequence
         spec = Spectrum(
             aIntensity,
             collision_energy,
             iRT,
+            ccs,
             aMass,
             precursor_charge,
             sequence_integer,
             aIons,
+            protein_id,
+            gene_name,
+            intensity_scaling,
+            unknown_value_str
         )
 
+        # Output string representation of the spectrum in the chosen format
         if fmt == 'msp':
             speclibtxt += spec.to_msp()
         elif fmt == 'tsv':
@@ -149,14 +175,31 @@ class Spectrum:
         aIntensity,
         collision_energy,
         iRT,
+        ccs,
         aMass,
         precursor_charge,
         sequence_integer,
         aIons,
+        protein_id,
+        gene_name,
+        intensity_scaling,
+        unknown_value_str='NA'
     ):
+        self.intensity_scaling = intensity_scaling
+
         self.aIntensity = aIntensity
         self.collision_energy = collision_energy
-        self.iRT = iRT
+
+        if iRT:
+            self.iRT = str(iRT)
+        else:
+            self.iRT = unknown_value_str
+
+        if ccs:
+            self.ccs = str(ccs)
+        else:
+            self.ccs = unknown_value_str
+
         self.aMass = aMass
         self.precursor_charge = precursor_charge
         self.aIons = aIons
@@ -169,6 +212,8 @@ class Spectrum:
             ion_type="M",
             charge=int(self.precursor_charge),
         )
+        self.protein_id = protein_id
+        self.gene_name = gene_name
 
 
     def to_msp(self):
@@ -176,6 +221,7 @@ class Spectrum:
         s += "Comment: Parent={precursor_mass} Collision_energy={collision_energy} "
         s += "Mods={mod} ModString={sequence}//{mod_string}/{charge} "
         s += "iRT={iRT}"
+        s += "ccs={ccs}"
         s += "\nNum peaks: {num_peaks}"
         num_peaks = len(self.aIntensity)
         s = s.format(
@@ -212,25 +258,27 @@ class Spectrum:
                 fragment_charge = '1'
             annotation = fragment_type + fragment_series_number + '^' + fragment_charge
 
+            # Scale intensity (often the highest peak is 10000 by convention)
+            intensity *= self.intensity_scaling
+
             # Collect the values for each column describing a particular peak
             row = [
-                str(self.precursor_mass),
+                str(self.precursor_mass), 
                 str(mz),
                 annotation,
-                'NA',
-                'NA',
+                str(self.protein_id),
+                str(self.gene_name),
                 peptide_seq,
-                peptide_seq,
+                self.sequence,
                 str(self.precursor_charge),
                 str(intensity),
-                str(self.iRT),
-                'NA',
+                self.iRT,
+                self.ccs,
                 fragment_type,
                 fragment_charge,
                 fragment_series_number,
                 'NA'
             ]
-
             # Add the row to the output string
             s += '\t'.join(row) + '\n'
             

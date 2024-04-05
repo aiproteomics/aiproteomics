@@ -6,33 +6,49 @@ from aiproteomics.e2e.constants import MAX_FRAG_CHARGE, MAX_NLOSSES
 
 
 def _predict(
-    data,
-    model_frag,
-    model_irt,
+    peptide_data,
+    model_frag=None,
+    model_irt=None,
+    model_ccs=None,
     batch_size_frag=None,
     batch_size_iRT=None,
+    batch_size_ccs=None,
     iRT_rescaling_mean=None,
     iRT_rescaling_var=None,
 ):
+    """
+    Use the provided models to predict the fragmentation spectra, normalized
+    retention times and ion mobility for the sequence information provided in
+    `peptide_data`.
+    """
+
     # Get fragmentation model predictions
-    x = [
-        data["sequence_integer"],
-        data["precursor_charge_onehot"],
-        data["collision_energy_aligned_normed"],
-    ]
-    prediction = model_frag.predict(x, verbose=False, batch_size=batch_size_frag)
-    data["intensities_pred"] = prediction
-    data = sanitize.sanitize_prediction_output(data)
+    if model_frag:
+        x = [
+            peptide_data["sequence_integer"],
+            peptide_data["precursor_charge_onehot"],
+            peptide_data["collision_energy_aligned_normed"],
+        ]
+        prediction = model_frag.predict(x, verbose=False, batch_size=batch_size_frag)
+        peptide_data["intensities_pred"] = prediction
+        peptide_data = sanitize.sanitize_prediction_output(peptide_data)
 
     # Get iRT model predictions
-    x = data["sequence_integer"]
-    prediction = model_irt.predict(x, verbose=False, batch_size=batch_size_iRT)
-    data["iRT"] = prediction * np.sqrt(iRT_rescaling_var) + iRT_rescaling_mean
+    if model_irt:
+        x = peptide_data["sequence_integer"]
+        prediction = model_irt.predict(x, verbose=False, batch_size=batch_size_iRT)
+        peptide_data["iRT"] = prediction * np.sqrt(iRT_rescaling_var) + iRT_rescaling_mean
 
-    return data
+    # Get ion mobility model predictions
+    if model_ccs:
+        x = peptide_data["sequence_integer"]
+        prediction = model_ccs.predict(x, verbose=False, batch_size=batch_size_ccs)
+        peptide_data["ccs"] = prediction
+
+    return peptide_data
 
 
-def _read_peptides_csv(fname, chunksize):
+def _read_peptides_csv(fname, chunksize, unknown_value_str='NA'):
     for df in pd.read_csv(fname, chunksize=chunksize):
         df.reset_index(drop=True, inplace=True)
         assert "modified_sequence" in df.columns
@@ -41,7 +57,7 @@ def _read_peptides_csv(fname, chunksize):
         data = {
             "collision_energy_aligned_normed": tensorize.get_numbers(df.collision_energy) / 100.0,
             "sequence_integer": tensorize.get_sequence_integer(df.modified_sequence),
-            "precursor_charge_onehot": tensorize.get_precursor_charge_onehot(df.precursor_charge),
+            "precursor_charge_onehot": tensorize.get_precursor_charge_onehot(df.precursor_charge)
         }
     
         # Calculate length of each (integer) peptide sequence
@@ -64,6 +80,13 @@ def _read_peptides_csv(fname, chunksize):
         masses_pred = sanitize.reshape_flat(masses_pred)
         data["masses_pred"] = masses_pred
 
+        # Add Protein ID and gene name if available
+        if "protein_id" in df.columns:
+            data["protein_id"] = df["protein_id"]
+
+        if "gene_name" in df.columns:
+            data["gene_name"] = df["gene_name"]
+
         yield data
 
 
@@ -72,13 +95,15 @@ def csv_to_speclib(
     in_csv_fname,
     out_msp_fname,
     model_frag,
-    model_irt,
-    batch_size_frag,
-    batch_size_iRT,
-    iRT_rescaling_mean,
-    iRT_rescaling_var,
+    model_irt=None,
+    model_ccs=None,
+    batch_size_frag=1024,
+    batch_size_iRT=1024,
+    batch_size_ccs=1024,
+    iRT_rescaling_mean=0.0,
+    iRT_rescaling_var=0.0,
     chunksize=10000,
-    fmt='msp'
+    fmt='tsv'
 ):
     """
     Outputs spectral library in msp format, for the peptide sequence list in the provided csv file
@@ -99,6 +124,8 @@ def csv_to_speclib(
                     The fragmentation model (prosit-like) to use for spectra prediction
         model_irt: tensor flow model
                    The normalized retention time model to use for prediction
+        model_ccs: tensor flow model
+                   The ion mobility model to use for prediction
 
         chunksize: integer (optional)
                    For very large input files, chunksize can be set to only read in
@@ -117,10 +144,12 @@ def csv_to_speclib(
             # Run fragmentation and iRT prediction models for this chunk of peptides
             predictiondata = _predict(
                 peptidedata,
-                model_frag,
-                model_irt,
+                model_frag=model_frag,
+                model_irt=model_irt,
+                model_ccs=model_ccs,
                 batch_size_frag=batch_size_frag,
                 batch_size_iRT=batch_size_iRT,
+                batch_size_ccs=batch_size_ccs,
                 iRT_rescaling_mean=iRT_rescaling_mean,
                 iRT_rescaling_var=iRT_rescaling_var,
             )
