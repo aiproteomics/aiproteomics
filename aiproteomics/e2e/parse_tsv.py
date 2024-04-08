@@ -60,7 +60,7 @@ def extract_sequences(
     # Filter for allowed alphabet
     allowed_peptides_set = {pep for pep in peptides_set if sequence_has_valid_alphabet(pep, allowed_alphabet)}
 
-    with open(out_csv_fname, "w") as outfile:
+    with open(out_csv_fname, "w", encoding="utf-8") as outfile:
         # Write header
         outfile.write("protein_id,gene_name,modified_sequence,collision_energy,precursor_charge\n")
 
