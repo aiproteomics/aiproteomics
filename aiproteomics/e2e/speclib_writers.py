@@ -139,8 +139,15 @@ def convert_to_speclib(data, fmt='tsv', intensity_scaling=10000, unknown_value_s
             ccs = None
 
         # If available, use the protein id and gene name in the spec lib
-        protein_id = data["protein_id"][i]
-        gene_name = data["gene_name"][i]
+        if "protein_id" in data:
+            protein_id = data["protein_id"][i]
+        else:
+            protein_id = unknown_value_str
+
+        if "gene_name" in data:
+            gene_name = data["gene_name"][i]
+        else:
+            gene_name = unknown_value_str
 
         # Build a predicted Spectrum representation for this sequence
         spec = Spectrum(
