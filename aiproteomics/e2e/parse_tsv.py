@@ -7,6 +7,7 @@ def sequence_has_valid_alphabet(seq, alpha):
             return False
     return True
 
+
 def extract_sequences(
         tsv_fname,
         out_csv_fname,
@@ -15,8 +16,8 @@ def extract_sequences(
         gene_name_column='Gene.Name',
         min_peptide_len=5,
         max_peptide_len=30,
-        charges=[1,2,3],
-        collision_energies=[20],
+        charges=(1,2,3),
+        collision_energies=(20),
         allowed_alphabet=constants.ALPHABET):
 
 
