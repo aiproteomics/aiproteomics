@@ -21,7 +21,7 @@ poetry install
 ## Try demo notebook
 After installation, you can try out the demo notebook by running the following:
 ```
-poetry run jupyter lab demo/demo_e2e.ipynb
+poetry run jupyter lab demo/uniprot_e2e.ipynb
 ```
 This will open the notebook using jupyter lab.
 
