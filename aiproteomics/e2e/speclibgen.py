@@ -48,7 +48,7 @@ def _predict(
     return peptide_data
 
 
-def _read_peptides_csv(fname, chunksize, unknown_value_str='NA'):
+def _read_peptides_csv(fname, chunksize):
     for df in pd.read_csv(fname, chunksize=chunksize):
         df.reset_index(drop=True, inplace=True)
         assert "modified_sequence" in df.columns

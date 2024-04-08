@@ -71,4 +71,3 @@ def extract_sequences(
             for collision_energy in collision_energies:
                 for precursor_charge in charges:
                     outfile.write(f'{protein_id},{gene_name},{seq},{collision_energy},{precursor_charge}\n')
-

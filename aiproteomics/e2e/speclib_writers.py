@@ -310,4 +310,3 @@ def get_tsv_format_header():
         "FragmentLossType"
     ]
     return '\t'.join(tsv_columns) + '\n'
-
