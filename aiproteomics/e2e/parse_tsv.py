@@ -16,10 +16,18 @@ def extract_sequences(
         gene_name_column='Gene.Name',
         min_peptide_len=5,
         max_peptide_len=30,
-        charges=(1,2,3),
-        collision_energies=(20),
-        allowed_alphabet=constants.ALPHABET):
+        charges=None,
+        collision_energies=None,
+        allowed_alphabet=None):
 
+    if charges is None:
+        charges = [1,2,3]
+
+    if collision_energies is None:
+        collision_energies = [20]
+
+    if allowed_alphabet is None:
+        allowed_alphabet=constants.ALPHABET
 
     gene_name_map = {}
     protein_id_map = {}
@@ -36,7 +44,8 @@ def extract_sequences(
         peptides_set = set()
         for row in tsv_reader:
             all_peptides_list = row[col_index[all_peptides_column]].split(';')
-            filter_allowed_sequence_lengths = filter (lambda pep_seq: (len(pep_seq) >= min_peptide_len) and (len(pep_seq) <= max_peptide_len), all_peptides_list)
+            filter_allowed_sequence_lengths = filter (
+                    lambda pep_seq: (len(pep_seq) >= min_peptide_len) and (len(pep_seq) <= max_peptide_len), all_peptides_list)
             peptides_set.update(filter_allowed_sequence_lengths)
 
             # Build mapping of protein sequences to one or more gene names and protein ids
