@@ -41,9 +41,9 @@ def extract_sequences(
 
             # Build mapping of protein sequences to one or more gene names and protein ids
             for peptide in all_peptides_list:
-                if peptide not in gene_name_map.keys():
+                if peptide not in gene_name_map:
                     gene_name_map[peptide] = set()
-                if peptide not in protein_id_map.keys():
+                if peptide not in protein_id_map:
                     protein_id_map[peptide] = set()
                 gene_name_map[peptide].update(row[col_index[gene_name_column]].split(';'))
                 protein_id_map[peptide].update(row[col_index[protein_id_column]].split(';'))
