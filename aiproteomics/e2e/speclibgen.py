@@ -157,5 +157,3 @@ def csv_to_speclib(
             # Convert the predictions to the chosen speclib format text
             speclibtxt = speclib_writers.convert_to_speclib(predictiondata, fmt=fmt)
             speclibout.write(speclibtxt)
-    
-            print(len(speclibtxt))
