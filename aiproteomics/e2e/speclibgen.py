@@ -1,7 +1,7 @@
 from . import sanitize
 import pandas as pd
 import numpy as np
-from aiproteomics.e2e import convert_to_msp, tensorize
+from aiproteomics.e2e import speclib_writers, tensorize
 from aiproteomics.e2e.constants import MAX_FRAG_CHARGE, MAX_NLOSSES
 
 
@@ -138,7 +138,7 @@ def csv_to_speclib(
     with open(out_msp_fname, 'w', encoding='utf-8') as speclibout:
 
         if fmt == 'tsv':
-            speclibout.write(convert_to_msp.get_tsv_format_header())
+            speclibout.write(speclib_writers.get_tsv_format_header())
 
         for peptidedata in _read_peptides_csv(in_csv_fname, chunksize=chunksize):
             # Run fragmentation and iRT prediction models for this chunk of peptides
@@ -155,7 +155,7 @@ def csv_to_speclib(
             )
 
             # Convert the predictions to the chosen speclib format text
-            speclibtxt = convert_to_msp.convert_to_speclib(predictiondata, fmt=fmt)
+            speclibtxt = speclib_writers.convert_to_speclib(predictiondata, fmt=fmt)
             speclibout.write(speclibtxt)
     
             print(len(speclibtxt))
