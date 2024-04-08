@@ -2,7 +2,7 @@ import os.path
 import tensorflow as tf
 from aiproteomics.rt.models import build_rt_transformer_model
 from aiproteomics.frag.models import build_model_transformer_encoder_prosit_decoder
-from aiproteomics.e2e.speclibgen import csv_to_msp
+from aiproteomics.e2e.speclibgen import csv_to_speclib
 
 
 def test_spectral_lib_generation(tmp_path):
@@ -30,7 +30,7 @@ def test_spectral_lib_generation(tmp_path):
 
     # Use the models to build a spectral library for a test csv of peptides
     msp_loc = tmp_path / "test.msp"
-    csv_to_msp(
+    csv_to_speclib(
         "tests/assets/example.csv",
         msp_loc,
         model_frag=model_frag,
