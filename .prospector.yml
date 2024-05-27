@@ -7,6 +7,7 @@ output-format: grouped
 strictness: medium
 doc-warnings: false
 test-warnings: true
+autodetect: false
 member-warnings: false
 
 ignore-paths:
