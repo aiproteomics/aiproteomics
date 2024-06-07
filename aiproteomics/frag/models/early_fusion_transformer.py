@@ -377,7 +377,7 @@ def early_fusion_transformer_128(weights_file=None):
     d_model_collision_energy = 128
 
     # Build the early fusion transformer and load weights
-    model = model_frag = build_model_early_fusion_transformer(
+    model = build_model_early_fusion_transformer(
             num_layers = 6,                 # number of layers
             d_model_seq = d_model_seq,
             d_model_charge = d_model_charge,
