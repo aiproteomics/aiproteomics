@@ -373,7 +373,7 @@ def build_model_early_fusion_transformer(  # pylint: disable=too-many-arguments,
 
 
 
-def early_fusion_transformer_128(load_weights=True):
+def early_fusion_transformer_128(weights_file=None):
 
     # Set the dimensions of the embeddings for the sequence, charge and collision
     # energy layers.
@@ -396,5 +396,5 @@ def early_fusion_transformer_128(load_weights=True):
             max_len = 30                    # maximal peptide length
     )
 
-    if load_weights:
-        model.load_weights(best_weights)
+    if weights_file:
+        model.load_weights(weights_file)
