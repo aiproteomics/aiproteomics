@@ -1,7 +1,7 @@
 import os.path
 import tensorflow as tf
 from aiproteomics.rt.models import build_rt_transformer_model
-from aiproteomics.frag.models import build_model_transformer_encoder_prosit_decoder
+from aiproteomics.frag.models.early_fusion_transformer import build_model_early_fusion_transformer
 from aiproteomics.e2e.speclibgen import csv_to_speclib
 
 
@@ -18,15 +18,7 @@ def test_spectral_lib_generation(tmp_path):
     )
 
     # Build a fragmentation model
-    model_frag = build_model_transformer_encoder_prosit_decoder(
-        num_layers=6,  # number of layers
-        d_model=512,
-        num_heads=8,  # Number of attention heads
-        d_ff=2048,  # Hidden layer size in feed forward network inside transformer
-        dropout_rate=0.1,  #
-        vocab_size=22,  # number of aminoacids
-        max_len=30,  # maximal peptide length
-    )
+    model_frag = build_model_early_fusion_transformer()
 
     # Use the models to build a spectral library for a test csv of peptides
     msp_loc = tmp_path / "test.msp"
