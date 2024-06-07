@@ -1,7 +1,5 @@
-import h5py
 import numpy as np
 import tensorflow as tf
-import aiproteomics
 from tensorflow import keras
 from keras import layers
 
@@ -370,9 +368,6 @@ def build_model_early_fusion_transformer(  # pylint: disable=too-many-arguments,
     return model
 
 
-
-
-
 def early_fusion_transformer_128(weights_file=None):
 
     # Set the dimensions of the embeddings for the sequence, charge and collision
@@ -382,7 +377,7 @@ def early_fusion_transformer_128(weights_file=None):
     d_model_collision_energy = 128
 
     # Build the early fusion transformer and load weights
-    model = build_model_transformer_embedding_energy_charge_concat(
+    model = model_frag = build_model_early_fusion_transformer(
             num_layers = 6,                 # number of layers
             d_model_seq = d_model_seq,
             d_model_charge = d_model_charge,
