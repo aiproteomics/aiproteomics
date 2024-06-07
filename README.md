@@ -6,8 +6,14 @@ This package contains various tools, datasets and ML model implementations from 
 Implementations of existing models from the literature are intended to be modifiable/extendable. For example, so that tests may be carried out with different peptide input lengths etc.
 
 ## Installation instructions
+### Latest release
+The latest release of `aiproteomics` can be installed from the python package index using `pip` as follows:
+```
+pip install aiproteomics
+```
 
-The current package can be installed using poetry after cloning the repository.  
+### Latest (development) version
+The latest version can be installed using poetry after cloning the repository.  
 Installation instructions for poetry itself can be found [here](https://python-poetry.org/docs/).  
 Once poetry is installed, run:
 
