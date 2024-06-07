@@ -17,12 +17,8 @@ cd aiproteomics/
 poetry install
 ```
 
-## Try demo notebook
-After installation, you can try out the demo notebook by running the following:
-```
-poetry run jupyter lab demo/uniprot_e2e.ipynb
-```
-This will open the notebook using jupyter lab.
+## Try demo notebooks
+After installation, you can try out the demo notebooks by following the instructions [here](demo/README.md).
 
 ## Redesign in progress
 This package is in the process of being redesigned to make it more general and portable. The redesign is focussing on the creation of:
