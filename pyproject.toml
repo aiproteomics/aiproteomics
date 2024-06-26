@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aiproteomics"
-version = "0.1.0"
+version = "0.2.1"
 description = ""
 authors = ["Robin Richardson <r.richardson@esciencecenter.nl>", "Dani Bodor <d.bodor@esciencecenter.nl>"]
 license = "Apache-2.0"
