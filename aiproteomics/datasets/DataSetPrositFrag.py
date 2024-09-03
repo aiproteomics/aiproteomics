@@ -17,7 +17,7 @@ class DataSetPrositFrag:
         Format is assumed to be the style of the Prosit (2019) model.
         Reads N data points (by default N=-1, for all data)
         """
-
+        print("Loading data")
         with h5py.File(dataset_fname, "r") as f:
 
             for expected_key in self.EXPECTED_PROSIT_FRAG_DATA_KEYS:
@@ -33,6 +33,7 @@ class DataSetPrositFrag:
             self.collision_energy_aligned_normed = f["collision_energy_aligned_normed"][:N]
             self.intensities_raw = f["intensities_raw"][:N]
 
+        print("Data loaded")
         # Cast intensities to float32 to match prediction type
         self.intensities_raw = tf.cast(self.intensities_raw, tf.float32)
 

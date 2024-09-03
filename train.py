@@ -6,6 +6,9 @@ import numpy as np
 import tensorflow as tf
 from keras import layers
 from tensorflow import keras
+
+
+from aiproteomics.datasets.DataSetPrositFrag import DataSetPrositFrag
 from aiproteomics.frag.models import transformer_frag
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
@@ -53,8 +56,8 @@ class EncoderBlockEnergyChargeEmbeddingConcat(tf.keras.layers.Layer):
         self.enc_layers = [
             transformer_frag.EncoderLayer(d_model_seq + d_model_charge +
                                           d_model_collision_energy, num_heads,
-                             dff,
-                         rate) for _ in range(num_layers)
+                                          dff,
+                                          rate) for _ in range(num_layers)
         ]
 
         self.dropout = tf.keras.layers.Dropout(rate)
@@ -217,9 +220,20 @@ def get_callbacks(model_dir_path):
 def get_best_weights_file():
     # Get best weights file
 
-    weight_files = sorted(glob.glob("data/weight_*.hdf5"))
+    weight_files = sorted(glob.glob("full_transfo_embeddings_concat_128/data/weight_*.hdf5"))
     best_weights = weight_files[-1]
     return best_weights
+
+
+def load_xy(path):
+    N = 6787933
+
+    with h5py.File(path, "r") as f:
+        x = [f['sequence_integer'][:N], f['precursor_charge_onehot'][:N],
+             f['collision_energy_aligned_normed'][:N]]
+        y = f['intensities_raw'][:N]
+
+    return x, y
 
 
 def main():
@@ -246,28 +260,25 @@ def main():
         best_weights = get_best_weights_file()
         print("Using weights file:", best_weights)
         model.load_weights(best_weights)
+        val_split = 0.8
 
         print("Training...")
-        N = 6787933
-        val_split = 0.8
-        with h5py.File('traintest_hcd.hdf5', "r") as f:
-            x = [f['sequence_integer'][:N], f['precursor_charge_onehot'][:N],
-                 f['collision_energy_aligned_normed'][:N]]
-            y = f['intensities_raw'][:N]
-            callbacks = get_callbacks('full_transfo_embeddings_concat_128/data')
-            loss = masked_spectral_distance
-            learning_rate = CustomSchedule(d_model_seq + d_model_charge + d_model_collision_energy)
-            optimizer = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98,
-                                                 epsilon=1e-9)
-            model.compile(optimizer=optimizer, loss=loss)
-            history = model.fit(
-                x=x,
-                y=y,
-                epochs=150,
-                batch_size=1024,
-                validation_split=1 - val_split,
-                callbacks=callbacks
-            )
+        x, y = load_xy('traintest_hcd.hdf5')
+
+        callbacks = get_callbacks('full_transfo_embeddings_concat_128/data')
+        loss = masked_spectral_distance
+        learning_rate = CustomSchedule(d_model_seq + d_model_charge + d_model_collision_energy)
+        optimizer = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98,
+                                             epsilon=1e-9)
+        model.compile(optimizer=optimizer, loss=loss)
+        history = model.fit(
+            x=x,
+            y=y,
+            epochs=150,
+            batch_size=1024,
+            validation_split=1 - val_split,
+            callbacks=callbacks
+        )
 
         train_loss = history.history['loss']
         val_loss = history.history['val_loss']
@@ -275,6 +286,7 @@ def main():
         print('train_loss:\n', train_loss)
         print('val_loss:\n', val_loss)
     elif sys.argv[1] == "plot":
+        from aiproteomics.comparison.ComparisonPrositFrag import ComparisonPrositFrag
         print("Plotting spectral angle comparison...")
 
         # Get best weights file
@@ -283,16 +295,30 @@ def main():
 
         model.load_weights(best_weights)
 
-        # Loading holdout dataset
-        from aiproteomics.datasets.DataSetPrositFrag import DataSetPrositFrag
         holdout_dataset = DataSetPrositFrag('holdout_hcd.hdf5')
 
         print("Plotting...")
-        from aiproteomics.comparison.ComparisonPrositFrag import ComparisonPrositFrag
+
         sa_plot = ComparisonPrositFrag.plot_spectral_angle_distributions(holdout_dataset, model)
 
         print("Saving...")
         sa_plot.get_figure().savefig("spectral_angle_comparison.png")
+    elif sys.argv[1] == "predict":
+        print("Predicting...")
+        print("Loading training set...")
+        x, y = load_xy('traintest_hcd.hdf5')
+
+        # Get best weights file
+        best_weights = get_best_weights_file()
+        print("Using weights file:", best_weights)
+        model.load_weights(best_weights)
+
+        predictions = model.predict(x)
+        with h5py.File("predictions.hdf5", "w") as f:
+            dset = f.create_dataset("predictions", predictions.shape, predictions.dtype)
+            dset[:, :] = predictions
+
+        #np.save("predictions.npy", predictions)
 
 
 if __name__ == "__main__":
