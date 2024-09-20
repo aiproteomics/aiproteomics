@@ -1,0 +1,1 @@
+cat $1 | awk -F ',' '{if(/U/) {} else {print}}' > $1-noU.csv
