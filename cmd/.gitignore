@@ -37,4 +37,4 @@ venv3
 poetry.lock
 
 data/
-*.onnx
+*/
