@@ -1,63 +1,55 @@
-[tool.poetry]
-name = "aiproteomics"
-version = "0.2.1"
-description = ""
-authors = ["Robin Richardson <r.richardson@esciencecenter.nl>", "Dani Bodor <d.bodor@esciencecenter.nl>"]
-license = "Apache-2.0"
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = ">=3.10.0,<3.12"
-tensorflow = "^2.11"
-tf2onnx = "^1.13.0"
-pandas = "^1.4"
-chardet = "^5.1.0"
-pyteomics = "^4.5.6"
-pydot = "^1.4.2"
-graphviz = "^0.20.1"
-lxml = "^4.9.2"
-seaborn = "^0.12.2"
-
-# Issue between poetry and tensorflow metadata since >=2.11
-# This is a temporary workaround
-# related to https://github.com/python-poetry/poetry/issues/8271
-# Inspired from https://github.com/tensorflow/tensorflow/blob/adb39b04e9cb116df4659a7e2de9eea27e62f25c/tensorflow/tools/pip_package/setup.py#L148-L162
-tensorflow = {version = "2.15.0" }
-tensorflow-macos = { version = "2.15.0", platform = "darwin", markers = "platform_machine=='arm64'" }
-tensorflow-intel = { version = "2.15.0", platform = "win32" }
-tensorflow-cpu = [
-    { version = "2.15.0", platform = "linux", markers = "platform_machine!='arm64' and platform_machine!='aarch64'" },
-    { version = "2.15.0", platform = "darwin", markers = "platform_machine!='arm64' and platform_machine!='aarch64'" },
-]
-tensorflow-cpu-aws = { version = "2.15.0", platform = "linux", markers = "platform_machine=='arm64' or platform_machine=='aarch64'" }
-# https://github.com/tensorflow/tensorflow/blob/adb39b04e9cb116df4659a7e2de9eea27e62f25c/tensorflow/tools/pip_package/setup.py#L107-L108
-# https://github.com/python-poetry/poetry/issues/8271#issuecomment-1697740447
-tensorflow-io-gcs-filesystem = [
-    { version = ">= 0.23.1", markers = "platform_machine!='arm64' or platform_system!='Darwin'" },
-    { version = "< 0.32.0", markers = "platform_system == 'Windows'" }
-]
-tensorflow-datasets = "^4.9.4"
-
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.2.1"
-pytest-cov = "^4.0.0"
-bump2version = "^1.0.1"
-prospector = "^1.8.4"
-pyroma = ">=2.4"
-jupyter = "^1.0.0"
-jupyterlab = "^3.6.1"
-
-mkdocs = ">=1.1.2,<2.0.0"
-mkdocs-material = ">=8.2.7,<9.0.0"
-mkdocstrings = ">=0.18.1"
-mdx-include = ">=1.4.1,<2.0.0"
-mkdocs-markdownextradata-plugin = ">=0.1.7,<0.3.0"
-jinja2 = "3.0.3"
-black = "^24.1.1"
-
-
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=64.0.0", "setuptools-scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aiproteomics"
+version = "0.3.0"
+description = "A package for MSMS spectral library prediction models from the field of (phospho-)proteomics, intended to facilitate the testing and comparison of different neural network architectures and existing models."
+authors = [
+    {name = "Robin Richardson", email = "r.richardson@esciencecenter.nl"},
+    {name = "Dani Bodor", email = "d.bodor@esciencecenter.nl"},
+    {name = "Djura Smits", email = "d.smits@esciencecenter.nl"},
+    {name = "Thang Pham"},
+    {name = "Jaro Camphuijsen"},
+    {name = "Candace Makeda Moore"},
+]
+license = {text = "Apache Software License"}
+readme = "README.md"
+requires-python = ">=3.10.0,<3.12"
+
+dependencies = [
+    "tensorflow ==2.15.0",
+    "tf2onnx ==1.16.1",
+    "tensorflow-datasets ==4.9.4",
+    "pandas ==1.4",
+    "chardet ==5.1.0",
+    "pyteomics ==4.5.6",
+    "pydot ==1.4.2",
+    "graphviz ==0.20.1",
+    "lxml ==4.9.2",
+    "seaborn ==0.12.2"
+]
+
+[tool.setuptools]
+py-modules = ["aiproteomics"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest ==7.2.1",
+    "pytest-cov ==4.0.0",
+    "bump2version ==1.0.1",
+    "prospector ==1.8.4",
+    "pyroma ==2.5",
+    "jupyter ==1.0.0",
+    "jupyterlab ==3.6.1"
+]
+docs = [
+    "mkdocs >=1.1.2,<2.0.0",
+    "mkdocs-material >=8.2.7,<9.0.0",
+    "mkdocstrings >=0.18.1",
+    "mdx-include >=1.4.1,<2.0.0",
+    "mkdocs-markdownextradata-plugin >=0.1.7,<0.3.0",
+    "jinja2 == 3.0.3",
+    "black == 24.1.1"
+]
