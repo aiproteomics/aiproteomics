@@ -8,7 +8,11 @@ version = "0.3.0"
 description = "A package for MSMS spectral library prediction models from the field of (phospho-)proteomics, intended to facilitate the testing and comparison of different neural network architectures and existing models."
 authors = [
     {name = "Robin Richardson", email = "r.richardson@esciencecenter.nl"},
-    {name = "Dani Bodor", email = "d.bodor@esciencecenter.nl"}
+    {name = "Dani Bodor", email = "d.bodor@esciencecenter.nl"},
+    {name = "Djura Smits", email = "d.smits@esciencecenter.nl"},
+    {name = "Thang Pham"},
+    {name = "Jaro Camphuijsen"},
+    {name = "Candace Makeda Moore"},
 ]
 license = {text = "Apache Software License"}
 readme = "README.md"
