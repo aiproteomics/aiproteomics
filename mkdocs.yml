@@ -2,8 +2,8 @@ site_name: aiproteomics
 site_description: A package for MSMS spectral library prediction models from the field of (phospho-)proteomics, intended to facilitate the testing and comparison of different neural network architectures and existing models.
 site_author: Robin Richardson, Dani Bodor
 site_url: https://aiproteomics.github.io/aiproteomics
-repo_name: aiproteomics/aiproteomics 
-repo_url: https://github.com/aiproteomics/aiproteomics 
+repo_name: aiproteomics/aiproteomics
+repo_url: https://github.com/aiproteomics/aiproteomics
 edit_uri: "edit/main/docs/"
 copyright: Copyright &copy; 2022 Robin Richardson, Dani Bodor
 
