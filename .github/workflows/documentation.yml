@@ -20,13 +20,11 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
       - name: Install dependencies
         run: |
-          poetry install
+          pip install ".[docs]"
       - name: Deploy mkdocs on GitHub Pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          poetry run mkdocs gh-deploy --force
+          mkdocs gh-deploy --force
