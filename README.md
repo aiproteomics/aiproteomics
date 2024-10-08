@@ -13,14 +13,12 @@ pip install aiproteomics
 ```
 
 ### Latest (development) version
-The latest version can be installed using poetry after cloning the repository.  
-Installation instructions for poetry itself can be found [here](https://python-poetry.org/docs/).  
-Once poetry is installed, run:
+The latest version can be installed using pip after cloning the repository.  
 
 ```
 git clone git@github.com:aiproteomics/aiproteomics.git
 cd aiproteomics/
-poetry install
+pip install .
 ```
 
 ## Try demo notebooks
