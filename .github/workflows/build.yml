@@ -35,7 +35,7 @@ jobs:
         run: |
           pip install ".[dev]"
       - name: Run unit tests
-        run: run pytest -v
+        run: pytest -v
       - name: run dataset test
         run: python -m prosit_fragmentation.prosit_fragmentation_dataset_builder_test
   lint:
