@@ -58,4 +58,4 @@ jobs:
         run: |
           pip install ".[dev]"
       - name: Check style against standards using prospector
-        run: prospector
+        run: prospector --ignore-paths data_exploration_notebooks
