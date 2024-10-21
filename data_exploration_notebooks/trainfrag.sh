@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -t 03:0git stat0:00
+#SBATCH -t 24:00:00
 #SBATCH -p gpu
 #SBATCH --gpus=1
 #SBATCH --ntasks 1

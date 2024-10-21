@@ -1,5 +1,8 @@
 import glob
 import sys
+import wandb
+from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
+from aiproteomics import wandbconfig
 
 import h5py
 import numpy as np
@@ -214,7 +217,10 @@ def get_callbacks(model_dir_path):
     save = keras.callbacks.ModelCheckpoint(weights_file, save_best_only=True,
                                            save_weights_only=True)
     decay = keras.callbacks.ReduceLROnPlateau(patience=2, factor=0.2)
-    return [save, decay]
+
+    logger = WandbMetricsLogger(log_freq=5)
+    wandb_checkpoint = WandbModelCheckpoint("models")
+    return [save, decay, logger, wandb_checkpoint]
 
 
 def get_best_weights_file():
@@ -256,10 +262,16 @@ def main():
     )
 
     if sys.argv[1] == "train":
+        wandb.init(project=wandbconfig.PROJECT_NAME)
+
         # Get best weights file
-        best_weights = get_best_weights_file()
-        print("Using weights file:", best_weights)
-        model.load_weights(best_weights)
+        try:
+            best_weights = get_best_weights_file()
+            print("Using weights file:", best_weights)
+            model.load_weights(best_weights)
+        except:
+            print("No weights file found, starting from scratch.")
+            
         val_split = 0.8
 
         print("Training...")
