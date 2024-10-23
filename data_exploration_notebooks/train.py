@@ -12,7 +12,7 @@ from tensorflow import keras
 
 
 from aiproteomics.datasets.DataSetPrositFrag import DataSetPrositFrag
-from aiproteomics.frag.models import transformer_frag
+from aiproteomics.frag.models import early_fusion_transformer
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
@@ -53,11 +53,11 @@ class EncoderBlockEnergyChargeEmbeddingConcat(tf.keras.layers.Layer):
         self.embedding_energy = tf.keras.layers.Embedding(max_collision_energy + 1,
                                                           d_model_collision_energy)
 
-        self.pos_encoding = transformer_frag.positional_encoding(
+        self.pos_encoding = early_fusion_transformer.positional_encoding(
             maximum_position_encoding, d_model_seq + d_model_charge + d_model_collision_energy)
 
         self.enc_layers = [
-            transformer_frag.EncoderLayer(d_model_seq + d_model_charge +
+            early_fusion_transformer.EncoderLayer(d_model_seq + d_model_charge +
                                           d_model_collision_energy, num_heads,
                                           dff,
                                           rate) for _ in range(num_layers)
@@ -75,7 +75,7 @@ class EncoderBlockEnergyChargeEmbeddingConcat(tf.keras.layers.Layer):
 
         seq_len = tf.shape(seq)[1]
 
-        enc_padding_mask = transformer_frag.create_padding_mask(seq)
+        enc_padding_mask = early_fusion_transformer.create_padding_mask(seq)
 
         # Construct embedding vectors: a concatenation of the amino acid + energy + charge.
         # Energy and charge are the same for every amino acid.
