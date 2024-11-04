@@ -23,10 +23,12 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from functools import partial
+from aiproteomics.tfrecords import get_dataset
 import matplotlib.pyplot as plt
 from pathlib import Path
 from aiproteomics.modelgen.prosit1.losses import masked_spectral_distance
-
+import wandb
+from wandb.integration.keras import WandbMetricsLogger
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
     print("Device:", tpu.master())
@@ -37,7 +39,7 @@ print("Number of replicas:", strategy.num_replicas_in_sync)
 
 # %%
 AUTOTUNE = tf.data.AUTOTUNE
-DATAPATH = Path("./data")
+DATAPATH = Path("../data")
 SAMPLE_FILE = DATAPATH/"randomized-0.tfrecord"
 BATCH_SIZE = 64
 VOCABULARY_SIZE = 30
@@ -50,73 +52,6 @@ TRAINING_FILENAMES = VALID_FILENAMES = TEST_FILENAMES = [SAMPLE_FILE.resolve()]
 print("Train TFRecord Files:", len(TRAINING_FILENAMES))
 print("Validation TFRecord Files:", len(VALID_FILENAMES))
 print("Test TFRecord Files:", len(TEST_FILENAMES))
-
-
-# %%
-def read_tfrecord(example, labeled):
-    print(f"This is what an example looks like: {example}")
-        
-    # Record spec
-    if labeled:
-        tfrecord_format = (
-            {
-                "charge": tf.io.FixedLenFeature([1], tf.int64),
-                "msms": tf.io.FixedLenFeature([OUTPUT_SHAPE], tf.float32),
-                "pep": tf.io.FixedLenFeature([SEQUENCE_LENGTH], tf.int64)
-            }
-        )
-    else:
-        tfrecord_format = (
-            {
-                "charge": tf.io.FixedLenFeature([1], tf.int64),
-                "pep": tf.io.FixedLenFeature([SEQUENCE_LENGTH], tf.int64)
-            }
-        )
-        
-    # Parse data according to spec
-    example = tf.io.parse_single_example(example, tfrecord_format)
-    
-    print(f"Parsed example: {example}")
-    
-    features = { "charge": tf.cast(example["charge"], tf.float32),
-                "pep": tf.cast(example["pep"], tf.int32)}
-    
-    if labeled:
-        label = tf.cast(example["msms"], tf.float32, name="msms")
-        
-        return features, label
-    
-    return features   
-    
-
-
-# %%
-def load_dataset(filenames, labeled):
-    ignore_order = tf.data.Options()
-    ignore_order.experimental_deterministic = False  # disable order, increase speed
-    dataset = tf.data.TFRecordDataset(
-        filenames
-    )  # automatically interleaves reads from multiple files
-    dataset = dataset.with_options(
-        ignore_order
-    )  # uses data as soon as it streams in, rather than in its original order
-    
-    dataset = dataset.map(
-        partial(read_tfrecord, labeled=labeled), num_parallel_calls=AUTOTUNE
-    )
-    
-    return dataset
-
-
-
-# %%
-def get_dataset(filenames, labeled=True):
-    dataset = load_dataset(filenames, labeled)
-    dataset = dataset.shuffle(2048)
-    dataset = dataset.prefetch(buffer_size=AUTOTUNE)
-    dataset = dataset.batch(BATCH_SIZE)
-    return dataset
-
 
 # %%
 train_dataset = get_dataset(TRAINING_FILENAMES)
@@ -164,6 +99,21 @@ def run_experiment(
     optimizer = keras.optimizers.AdamW(
         learning_rate=learning_rate, weight_decay=weight_decay
     )
+    # Set up wandb
+
+    # start a new wandb run to track this script
+    wandb.init(
+        # set the wandb project where this run will be logged
+        project="aiproteomics",
+    
+        # track hyperparameters and run metadata
+        config={
+        "model": model.name
+        "num_epochs": num_epochs,
+        "learning_rate": learning_rate,
+        "weight_decay": weight_decay,
+        }
+    )
 
     model.compile(
         optimizer=optimizer,
@@ -176,7 +126,11 @@ def run_experiment(
 
     print("Start training the model...")
     history = model.fit(
-        train_dataset, epochs=num_epochs, validation_data=validation_dataset
+        train_dataset, 
+        epochs=num_epochs,
+        validation_data=validation_dataset,
+        callbacks=[WandbMetricsLogger()]
+        
     )
     print("Model training finished")
 
@@ -198,24 +152,17 @@ def create_model_inputs():
             )
     return {"charge": charge_input, "pep": peptides}
 
-def encode_inputs(inputs, embedding_dims, vocabulary_size=VOCABULARY_SIZE):
+def encode_inputs(inputs, embedding_dims, vocabulary_size=VOCABULARY_SIZE, expand_charge=False):
     # Encoding
     embedding = layers.Embedding(input_dim=vocabulary_size, output_dim=embedding_dims)
     
     pep_embedding = embedding(inputs["pep"])
+    charge_feature = inputs["charge"]
     
-    # We are going to treat charge as a single float (maybe one hot encoded is better?)
-    # We need the dimensions of charge to match the pep embedding
-    
-    
-    charge_feature = tf.expand_dims(inputs["charge"], -1)
-    
-    print(f"Charge input: {inputs['charge']}")
-    print(f"Charge expanded: {charge_feature}")
-    
-    
-    charge_feature = tf.repeat(charge_feature, EMBEDDING_DIMS, axis=2)
-    print(f"Charge repeated: {charge_feature}")
+    if expand_charge:
+        charge_feature = tf.expand_dims(charge_feature, -1)
+        charge_feature = tf.repeat(charge_feature, EMBEDDING_DIMS, axis=2)
+        print(f"Charge repeated: {charge_feature}")
     
     return charge_feature, pep_embedding
 
@@ -248,7 +195,7 @@ def create_baseline_model(
     inputs = create_model_inputs()
     # encode features.
     charge_feature, encoded_pep = encode_inputs(
-        inputs, embedding_dims
+        inputs, embedding_dims, expand_charge=True
     )
 
     features = layers.concatenate([charge_feature, encoded_pep], axis=1)
@@ -289,7 +236,7 @@ def create_baseline_model(
         name='out', data_format='channels_last', trainable=True)(activation)
     
     
-    model = keras.Model(inputs=inputs, outputs=output_layer)
+    model = keras.Model(inputs=inputs, outputs=output_layer, name="baseline")
     return model
 
 
@@ -299,7 +246,6 @@ baseline_model = create_baseline_model(
     mlp_hidden_units_factors=MLP_HIDDEN_UNITS_FACTORS,
     dropout_rate=DROPOUT_RATE,
 )
-
 print("Total model weights:", baseline_model.count_params())
 keras.utils.plot_model(baseline_model, show_shapes=True, rankdir="TB", show_dtype=True)
 
@@ -314,30 +260,18 @@ def create_tabtransformer_classifier(
     embedding_dims,
     mlp_hidden_units_factors,
     dropout_rate,
-    use_column_embedding=False,
+    output_shape
 ):
     # Create model inputs.
     inputs = create_model_inputs()
     # encode features.
-    encoded_categorical_feature_list, numerical_feature_list = encode_inputs(
-        inputs, embedding_dims
-    )
-    # Stack categorical feature embeddings for the Tansformer.
-    encoded_categorical_features = ops.stack(encoded_categorical_feature_list, axis=1)
-    # Concatenate numerical features.
-    numerical_features = layers.concatenate(numerical_feature_list)
+    charge_feature, pep_embedding = encode_inputs(inputs, embedding_dims)
+    
 
+    # Tutorial does column embedding for multiple categorical features,
+    # but we only have one categorical feature so I'm skipping that
     # Add column embedding to categorical feature embeddings.
-    if use_column_embedding:
-        num_columns = encoded_categorical_features.shape[1]
-        column_embedding = layers.Embedding(
-            input_dim=num_columns, output_dim=embedding_dims
-        )
-        column_indices = ops.arange(start=0, stop=num_columns, step=1)
-        encoded_categorical_features = encoded_categorical_features + column_embedding(
-            column_indices
-        )
-
+    
     # Create multiple layers of the Transformer block.
     for block_idx in range(num_transformer_blocks):
         # Create a multi-head attention layer.
@@ -346,10 +280,10 @@ def create_tabtransformer_classifier(
             key_dim=embedding_dims,
             dropout=dropout_rate,
             name=f"multihead_attention_{block_idx}",
-        )(encoded_categorical_features, encoded_categorical_features)
+        )(pep_embedding, pep_embedding)
         # Skip connection 1.
         x = layers.Add(name=f"skip_connection1_{block_idx}")(
-            [attention_output, encoded_categorical_features]
+            [attention_output, pep_embedding]
         )
         # Layer normalization 1.
         x = layers.LayerNormalization(name=f"layer_norm1_{block_idx}", epsilon=1e-6)(x)
@@ -366,16 +300,17 @@ def create_tabtransformer_classifier(
         # Skip connection 2.
         x = layers.Add(name=f"skip_connection2_{block_idx}")([feedforward_output, x])
         # Layer normalization 2.
-        encoded_categorical_features = layers.LayerNormalization(
+        pep_features = layers.LayerNormalization(
             name=f"layer_norm2_{block_idx}", epsilon=1e-6
         )(x)
 
     # Flatten the "contextualized" embeddings of the categorical features.
-    categorical_features = layers.Flatten()(encoded_categorical_features)
+    pep_features = layers.Flatten()(pep_features)
     # Apply layer normalization to the numerical features.
-    numerical_features = layers.LayerNormalization(epsilon=1e-6)(numerical_features)
+    charge_feature = layers.LayerNormalization(epsilon=1e-6)(charge_feature)
+    
     # Prepare the input for the final MLP block.
-    features = layers.concatenate([categorical_features, numerical_features])
+    features = layers.concatenate([pep_features, charge_feature])
 
     # Compute MLP hidden_units.
     mlp_hidden_units = [
@@ -390,9 +325,8 @@ def create_tabtransformer_classifier(
         name="MLP",
     )(features)
 
-    # Add a sigmoid as a binary classifer.
-    outputs = layers.Dense(units=1, activation="sigmoid", name="sigmoid")(features)
-    model = keras.Model(inputs=inputs, outputs=outputs)
+    outputs = layers.Dense(units=output_shape)(features)
+    model = keras.Model(inputs=inputs, outputs=outputs, name="tabtransformer")
     return model
 
 
@@ -402,64 +336,13 @@ tabtransformer_model = create_tabtransformer_classifier(
     embedding_dims=EMBEDDING_DIMS,
     mlp_hidden_units_factors=MLP_HIDDEN_UNITS_FACTORS,
     dropout_rate=DROPOUT_RATE,
+    output_shape=OUTPUT_SHAPE
 )
 
 print("Total model weights:", tabtransformer_model.count_params())
-keras.utils.plot_model(tabtransformer_model, show_shapes=True, rankdir="LR")
+keras.utils.plot_model(tabtransformer_model, show_shapes=True, rankdir="TB")
 
 # %%
-tfrecord_format = (
-    {
-        "charge": tf.io.FixedLenFeature([1], tf.int64),
-        "msms": tf.io.FixedLenFeature([OUTPUT_SHAPE], tf.float32),
-        "pep": tf.io.FixedLenFeature([50], tf.int64)
-    }
-)
-
-raw_dataset = tf.data.TFRecordDataset(SAMPLE_FILE)
-for raw_record in raw_dataset.take(1):
-    example = tf.io.parse_single_example(raw_record, tfrecord_format)
-    print(example)
-
-# %%
-
-
-raw_dataset = tf.data.TFRecordDataset(SAMPLE_FILE)
-for raw_record in raw_dataset.take(1):
-    for sequence_length in range(400):
-        #print(f"Trying {sequence_length}")
-              
-        tfrecord_format = (
-            {
-                "charge": tf.io.FixedLenFeature([1], tf.int64),
-                "msms": tf.io.FixedLenFeature([OUTPUT_SHAPE], tf.float32),
-                "pep": tf.io.FixedLenFeature([sequence_length], tf.int64)
-            }
-        )
-        try:
-            example = tf.io.parse_single_example(raw_record, tfrecord_format)
-        except Exception as e:
-            continue
-        
-        print(f"Sequence length is: {sequence_length}")
-        break
-
-
-
-# for raw_record in raw_dataset.take(1):
-#     example = tf.io.parse_single_example(raw_record, tfrecord_format)
-#     print(example)
-
-# %%
-print(SAMPLE_FILE)
-raw_dataset = tf.data.TFRecordDataset(SAMPLE_FILE)
-for raw_record in raw_dataset.take(1):
-    example = tf.train.Example()
-    example.ParseFromString(raw_record.numpy())
-    
-    print(example)
-
-# %%
-InvalidArgumentError
+run_experiment(tabtransformer_model,TRAINING_FILENAMES, TEST_FILENAMES, NUM_EPOCHS, LEARNING_RATE, WEIGHT_DECAY, BATCH_SIZE)
 
 # %%
