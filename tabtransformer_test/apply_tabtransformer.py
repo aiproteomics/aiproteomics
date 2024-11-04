@@ -108,7 +108,7 @@ def run_experiment(
     
         # track hyperparameters and run metadata
         config={
-        "model": model.name
+        "model": model.name,
         "num_epochs": num_epochs,
         "learning_rate": learning_rate,
         "weight_decay": weight_decay,
