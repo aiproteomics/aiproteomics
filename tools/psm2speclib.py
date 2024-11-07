@@ -117,7 +117,7 @@ def parse_ion(ion):
         return None
 
     if ion == 'pY':
-        return ('pY', None, None, None)
+        return ('pY', 0, 1, None)
 
     # Get single letter ion identifier e.g. 'y', 'b', 'a'
     ion_type = ion[0]
