@@ -206,9 +206,10 @@ def map_psm_row(row, ignore_unsupported=True):
     precursor_mz = mass.fast_mass(sequence=seq, charge=precursor_charge, aa_mass=aa_mass, ion_type='M')
     unmodified_peptide_sequence = generate_unmodified_peptide_sequence(modified_peptide_sequence)
 
-    s = ''
+    # Get the list of product rows to output (in string form)
+    output_rows = []
     for ion in parse_ions(matches, intensities, seq):
-        s += '\t'.join(map(str, [
+        output_rows.append('\t'.join(map(str, [
             precursor_mz,
             ion["ProductMz"],
             ion["Annotation"],
@@ -222,11 +223,14 @@ def map_psm_row(row, ignore_unsupported=True):
             ion["FragmentCharge"],
             ion["FragmentSeriesNumber"],
             ion["FragmentLossType"]
-            ])) + '\n'
+            ])))
+
+    # Put newlines between each row, except last row (csv writer will add that)
+    s = '\n'.join(output_rows)
 
     # TODO: Make an adaptable format writer for each row of output
     # that handles missing values gracefully
-    if s == '':
+    if len(output_rows) == 0:
         return None
 
     return s
