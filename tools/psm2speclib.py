@@ -1,6 +1,7 @@
 # DONE - Check if pyteomics is adding the H masses for each charge on the ion
 # DONE - Check if precursor also has this
 
+# Check if y and b ions have correct OH, H additions
 
 # Ask about breakages for asterisk (acetyl) in first position.
 # Is there a reason why we couldn't use fast_mass (i.e. just sum the masses of all amino acids in chain, with modifications if necessary)?
@@ -22,8 +23,6 @@ from pyteomics import mass
 # TODO: Move this to settings
 ALLOWED_IONS = ['y', 'b', 'a']
 MASS_pY = 216.043 # phosphorylation diagnostic peak
-
-
 
 
 def generate_aa_mass():
@@ -266,6 +265,9 @@ if __name__ == "__main__":
     # Drop empty rows (corresponds to input sequences that had no matches - e.g. set to nan)
     out_series = out_series.dropna()
 
+    # Add string to use as header of output tsv
+    out_series = out_series.rename('\t'.join(out_cols))
+
     # Write the resulting speclib to file. Note that the following is something of an
     # abuse of the csv writer, so a better (still performant) solution is needed
-    out_series.to_csv(args.outfile, sep='|', escapechar=' ', index=False, quoting=csv.QUOTE_NONE, quotechar="", na_rep='NaN', header=False, single_file=True)
+    out_series.to_csv(args.outfile, sep='|', escapechar=' ', index=False, quoting=csv.QUOTE_NONE, quotechar="", na_rep='NaN', header=True, single_file=True)

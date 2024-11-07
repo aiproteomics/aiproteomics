@@ -29,5 +29,3 @@ To ignore any such sequences, use the `--ignore-unsupported` (or simply `-I`) op
 ```
 python psm2speclib.py -i in_psm.tsv -o out_speclib.tsv --ignore_unsupported
 ```
-
-
