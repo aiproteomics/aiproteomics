@@ -29,3 +29,19 @@ To ignore any such sequences, use the `--ignore-unsupported` (or simply `-I`) op
 ```
 python psm2speclib.py -i in_psm.tsv -o out_speclib.tsv --ignore_unsupported
 ```
+
+
+## `speclib2psm`
+This tool does the reverse conversion as `psm2speclib`. It takes an input tsv formatted spectral library
+and converts to a PSM style tsv file.
+
+### Running
+It can be run with e.g.
+```
+python speclib2psm.py -i speclib.tsv -o test_psm.tsv
+```
+
+To see help on all options:
+```
+python speclib2psm.py --help
+```
