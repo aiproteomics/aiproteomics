@@ -4,13 +4,6 @@ import itertools as it
 import numpy as np
 from pyteomics import mass
 
-@dataclass
-class ModelParams:
-    seq_len: int
-    ions: list
-    num_charges: int
-    neutral_losses: list
-
 
 @dataclass
 class Fragment:
@@ -30,6 +23,37 @@ class Fragment:
             s += f'-{self.fragment_loss_type}'
         return s
 
+
+@dataclass
+class ModelParams:
+    seq_len: int
+    ions: list
+    num_charges: int
+    neutral_losses: list
+
+    def generate_fragment_list(self, input_seq_len=None):
+        """
+            Generate permutations of fragments possible for the output layer
+            of the model described by this `model_params` object.
+
+            By default, this function assumes a sequence of the maximum size
+            allowed in this model (`seq_len`). However, if `input_seq_len` is
+            passed, the returned list is truncated to only those fragments which
+            are possible for a sequence of that length.
+        """
+
+        frag_iter = it.product(
+                            range(1, self.seq_len),
+                            self.ions,
+                            range(self.num_charges),
+                            self.neutral_losses)
+
+        frag_list = np.array([Fragment(ion, charge, cleavage, loss) for cleavage, ion, charge, loss in frag_iter])
+
+        if input_seq_len:
+            return frag_list[:input_seq_len * len(self.ions) * self.num_charges * len(self.neutral_losses)]
+
+        return frag_list
 
 @dataclass
 class SpectrumEntry:
@@ -141,6 +165,9 @@ def get_ion_mz(seq, frag: Fragment, aa_mass):
     ion_break = frag.fragment_series_number
     ion_charge = frag.fragment_charge
 
+    if ion_break > len(seq):
+        print(seq, ion_break, ion_type)
+
     if ion_type[0] in 'abc':
         frag_seq = seq[:ion_break]
     else:
@@ -153,30 +180,27 @@ def get_ion_mz(seq, frag: Fragment, aa_mass):
     return mass.fast_mass(frag_seq, ion_type=ion_type, charge=ion_charge, aa_mass=aa_mass)
 
 
-def generate_fragment_list(model_params):
-    """
-        Generate permutations of fragments possible for the output layer
-        of the model described by the given model_params object
-    """
-    frag_iter = it.product(
-                        range(1, model_params.seq_len),
-                        model_params.ions,
-                        range(model_params.num_charges),
-                        model_params.neutral_losses)
-
-    return np.array([Fragment(ion, charge, cleavage, loss) for cleavage, ion, charge, loss in frag_iter])
-
 
 def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_charge, iRT, ccs, thresh=0.1):
 
+    # Work out length of input sequence (in amino acids) so that the
+    # relevant portion of the output layer can be considered
+    input_seq_len = len(sequence)
+    if sequence[0] == '*':
+        input_seq_len -= 1
+
     # Identify which intensity peaks are above the defined threshold
     # and get the list of fragments that correspond to that.
-    frag_key = generate_fragment_list(model_params)
-    peaks = output_layer > thresh
-    frag_list = zip(frag_key[peaks], output_layer[peaks])
+    frag_key = model_params.generate_fragment_list(input_seq_len=input_seq_len)
+    output_layer_truncated = output_layer[:len(frag_key)]
+    peaks = output_layer_truncated > thresh
+    frag_list = zip(frag_key[peaks], output_layer_truncated[peaks])
 
+
+    # Calc precursor m/z
     precursor_mz = mass.fast_mass(sequence=sequence, charge=precursor_charge, aa_mass=aa_mass, ion_type='M')
 
+    # Build the list of spectrum entries for each product fragment
     products = [SpectrumEntry(
                                 frag,
                                 intensity,
@@ -195,7 +219,7 @@ def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_cha
 model_params = ModelParams(seq_len=50, ions=['y','b'], num_charges=2, neutral_losses=['', 'H3PO4'])
 print(model_params)
 
-frag_list = generate_fragment_list(model_params)
+frag_list = model_params.generate_fragment_list()
 
 print("Length:", len(frag_list))
 print([frag.annotation for frag in frag_list])
