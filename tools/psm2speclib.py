@@ -1,11 +1,6 @@
-# DONE - Check if pyteomics is adding the H masses for each charge on the ion
-# DONE - Check if precursor also has this
+# LOOKS WRONG in pyteomics - Check if y and b ions have correct OH, H additions
 
-# Check if y and b ions have correct OH, H additions
-
-# Ask about breakages for asterisk (acetyl) in first position.
-# Is there a reason why we couldn't use fast_mass (i.e. just sum the masses of all amino acids in chain, with modifications if necessary)?
-# QQLSP(UniMod:21)SPGQEAGILPETEK has an unusual mod, or should it be for the S in front?
+# Check about pY charge and fragment values (need integers)
 
 import sys
 import argparse
