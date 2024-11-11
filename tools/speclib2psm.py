@@ -2,7 +2,6 @@ import sys
 import argparse
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
-from dask import compute
 
 # Columns from the input file that are not needed for creating
 # the output file and can be dropped for performance reasons
@@ -73,7 +72,7 @@ if __name__ == "__main__":
 
     # Aggregate annotations and intensities to a semi-colon separated list
     speclib_df = speclib_df.groupby(group_columns).agg({'Annotation': list, 'LibraryIntensity': list}).reset_index()
-    speclib_df = speclib_df.map_partitions(lambda part : part.apply(lambda row: map_row(row), axis=1, result_type='expand'), meta=out_dtypes)
+    speclib_df = speclib_df.map_partitions(lambda part : part.apply(map_row, axis=1, result_type='expand'), meta=out_dtypes)
 
     # Compute and write to tsv
     speclib_df = speclib_df[output_headings_order]
@@ -82,4 +81,3 @@ if __name__ == "__main__":
             speclib_df.to_csv(args.outfile, sep='\t', single_file=True, header=True, index=False)
         elif args.outformat == 'parquet':
             speclib_df.to_parquet(args.outfile)
-
