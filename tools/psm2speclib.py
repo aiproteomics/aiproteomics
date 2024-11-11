@@ -4,14 +4,10 @@
 
 import sys
 import argparse
-
 import re
+import csv
 
 import dask.dataframe as dd
-import pandas as pd
-
-import numpy as np
-import csv
 
 from pyteomics import mass
 
@@ -68,7 +64,7 @@ def generate_unmodified_peptide_sequence(modified_seq):
         sequence absent any modification text (by simply removing anything
         in brackets `()`).
     """
-    return re.sub("[\(].*?[\)]", "", modified_seq)
+    return re.sub(r"[\(].*?[\)]", "", modified_seq)
 
 
 def unimod_to_single_char_sequence(seq, ignore_unsupported=False):
@@ -85,8 +81,7 @@ def unimod_to_single_char_sequence(seq, ignore_unsupported=False):
     if '(' in seq:
         if ignore_unsupported:
             return None
-        else:
-            raise ValueError(f'Sequence {seq} contains unsupported amino acid modifications. List of supported mods: {aa_mod_map.keys()}')
+        raise ValueError(f'Sequence {seq} contains unsupported amino acid modifications. List of supported mods: {aa_mod_map.keys()}')
 
     return seq
 
@@ -145,7 +140,7 @@ def parse_ion(ion):
     try:
         ion_break = int(ion_break_str)
     except ValueError as ve:
-        raise ValueError(f'Exception when converting ion breakage str {ion_break_str}: {ve}')
+        raise ValueError(f'Exception when converting ion breakage str {ion_break_str}: {ve}') from ve
 
     return (ion_type, ion_break, ion_charge, neutral_loss)
 
@@ -230,6 +225,7 @@ def map_psm_row(row, ignore_unsupported=True):
 
     return s
 
+
 out_cols = [
     "PrecursorMz",
     "ProductMz",
@@ -259,7 +255,8 @@ if __name__ == "__main__":
     # Read input PSM tsv file and convert each of its rows to multiple lines of speclib output
     psm_df = dd.read_csv(args.infile, sep='\t')
     psm_df = psm_df.repartition(npartitions=args.num_partitions)
-    out_series = psm_df.map_partitions(lambda part : part.apply(lambda row: map_psm_row(row, ignore_unsupported=args.ignore_unsupported), axis=1), meta=('speclib_str', 'string'))
+    out_series = psm_df.map_partitions(lambda part : part.apply(
+        lambda row: map_psm_row(row, ignore_unsupported=args.ignore_unsupported), axis=1), meta=('speclib_str', 'string'))
 
     # Drop empty rows (corresponds to input sequences that had no matches - e.g. set to nan)
     out_series = out_series.dropna()
