@@ -1,5 +1,3 @@
-import sys
-
 from dataclasses import dataclass
 import itertools as it
 from typing import Optional

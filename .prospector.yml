@@ -30,6 +30,7 @@ pycodestyle:
     disable:
       - E741
       - E722
+      - N815
     options:
       max-line-length: 150
 
@@ -46,3 +47,7 @@ pydocstyle:
         D213,  # Multi-line docstring summary should start at the second line
         D404,  # First word of the docstring should not be This
     ]
+
+pylint:
+  disable:
+    - too-many-arguments
