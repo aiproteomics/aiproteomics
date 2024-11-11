@@ -211,6 +211,17 @@ out_dtypes = {
     "FragmentLossType": "string"
 }
 
+# Columns corresponding to info about each fragment
+explode_cols = [
+    "ProductMz",
+    "Annotation",
+    "LibraryIntensity",
+    "FragmentType",
+    "FragmentCharge",
+    "FragmentSeriesNumber",
+    "FragmentLossType"
+]
+
 
 def map_psm_row(row, ignore_unsupported=True):
     modified_peptide_sequence = row['Modified.sequence']
@@ -254,27 +265,23 @@ if __name__ == "__main__":
 
     # Parse commandline arguments. Input and output filenames must be provided.
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--infile', type=str, help='The input PSM file you wish to convert.', required=True)
-    parser.add_argument('-o', '--outfile', type=str, help='The output tsv format speclib.', required=True)
+    parser.add_argument('-i', '--inpath', type=str, help='The input PSM file you wish to convert.', required=True)
+    parser.add_argument('-o', '--outpath', type=str, help='The path to write the output (a file for tsv, a directory for parquet).', required=True)
     parser.add_argument('-I', '--ignore-unsupported', action="store_true", default=False, help='Ignore unsupported modified sequences.')
+    parser.add_argument('-f', '--informat', type=str, choices=['tsv', 'parquet'], help='The input format. If tsv, inpath is expected to be a tsv file. If parquet, inpath is expected to be a directory of parquet files.', required=True)
+    parser.add_argument('-g', '--outformat', type=str, choices=['tsv', 'parquet'], help='The output format.', required=True)
     parser.add_argument('-n', '--num-partitions', type=int, default=1, help='Number of partitions to use with Dask.')
-    parser.add_argument('-f', '--outformat', type=str, choices=['tsv', 'parquet'], help='The output format.', required=True)
     args = parser.parse_args(sys.argv[1:len(sys.argv)])
 
-    # Explode the lists so that we get 1 row per fragment
-    explode_cols = [
-        "ProductMz",
-        "Annotation",
-        "LibraryIntensity",
-        "FragmentType",
-        "FragmentCharge",
-        "FragmentSeriesNumber",
-        "FragmentLossType"
-    ]
-
-    # Read input PSM tsv file and make lists of fragment info for each row
-    psm_df = dd.read_csv(args.infile, sep='\t')
+    # Read input PSM file according to specified format
+    if args.informat == 'tsv':
+        psm_df = dd.read_csv(args.inpath, sep='\t')
+    else:
+        psm_df = dd.read_parquet(args.inpath)
     psm_df = psm_df.repartition(npartitions=args.num_partitions)
+
+    # Make lists of fragment info for each row, then explode the lists
+    # so we get 1 row per fragment
     speclib_df = psm_df.map_partitions(
             lambda part : part.apply(
             lambda row: map_psm_row(row, ignore_unsupported=args.ignore_unsupported), axis=1, result_type='expand'
@@ -286,6 +293,6 @@ if __name__ == "__main__":
     # Write the resulting speclib to file.
     with ProgressBar():
         if args.outformat == 'tsv':
-            speclib_df.to_csv(args.outfile, sep='\t', na_rep='NaN', index=False, header=True, single_file=True)
+            speclib_df.to_csv(args.outpath, sep='\t', na_rep='NaN', index=False, header=True, single_file=True)
         elif args.outformat == 'parquet':
-            speclib_df.to_parquet(args.outfile)
+            speclib_df.to_parquet(args.outpath)
