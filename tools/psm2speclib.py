@@ -177,7 +177,7 @@ def parse_ions(str_matches, str_intensities, seq):
             ion_mz -= mass_neutral_loss[neutral_loss]
 
         annotations.append(annotation)
-        intensities.append(intensity)
+        intensities.append(float(intensity))
         ion_mzs.append(ion_mz)
         ion_types.append(ion_type)
         ion_breaks.append(ion_break)
@@ -194,23 +194,21 @@ def parse_ions(str_matches, str_intensities, seq):
             "FragmentLossType": losses}
 
 
-# Specify types for each of the output columns from the initial mapping.
-# "object" is used for those columns that will contain a list (since the
-# value is different for each fragment).
+# Specify types for each of the output columns of the speclib file.
 out_dtypes = {
-    "PrecursorMz": "string",
-    "ProductMz": "object",
-    "Annotation": "object",
+    "PrecursorMz": "float32",
+    "ProductMz": "float32",
+    "Annotation": "string",
     "PeptideSequence": "string",
     "ModifiedPeptideSequence": "string",
     "PrecursorCharge": "int32",
-    "LibraryIntensity": "object",
+    "LibraryIntensity": "float32",
     "NormalizedRetentionTime": "float32",
     "PrecursorIonMobility": "float32",
-    "FragmentType": "object",
-    "FragmentCharge": "object",
-    "FragmentSeriesNumber": "object",
-    "FragmentLossType": "object"
+    "FragmentType": "string",
+    "FragmentCharge": "int32",
+    "FragmentSeriesNumber": "int32",
+    "FragmentLossType": "string"
 }
 
 
@@ -260,13 +258,8 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--outfile', type=str, help='The output tsv format speclib.', required=True)
     parser.add_argument('-I', '--ignore-unsupported', action="store_true", default=False, help='Ignore unsupported modified sequences.')
     parser.add_argument('-n', '--num-partitions', type=int, default=1, help='Number of partitions to use with Dask.')
+    parser.add_argument('-f', '--outformat', type=str, choices=['tsv', 'parquet'], help='The output format.', required=True)
     args = parser.parse_args(sys.argv[1:len(sys.argv)])
-
-    # Read input PSM tsv file and make lists of fragment info for each row
-    psm_df = dd.read_csv(args.infile, sep='\t')
-    psm_df = psm_df.repartition(npartitions=args.num_partitions)
-    out_series = psm_df.map_partitions(lambda part : part.apply(
-        lambda row: map_psm_row(row, ignore_unsupported=args.ignore_unsupported), axis=1, result_type='expand'), meta=out_dtypes)
 
     # Explode the lists so that we get 1 row per fragment
     explode_cols = [
@@ -278,11 +271,21 @@ if __name__ == "__main__":
         "FragmentSeriesNumber",
         "FragmentLossType"
     ]
-    out_series = out_series.explode(column=explode_cols)
+
+    # Read input PSM tsv file and make lists of fragment info for each row
+    psm_df = dd.read_csv(args.infile, sep='\t')
+    psm_df = psm_df.repartition(npartitions=args.num_partitions)
+    speclib_df = psm_df.map_partitions(
+            lambda part : part.apply(
+            lambda row: map_psm_row(row, ignore_unsupported=args.ignore_unsupported), axis=1, result_type='expand'
+            ).explode(column=explode_cols), meta=out_dtypes)
 
     # Drop empty rows (corresponds to input sequences that had no matches - e.g. set to nan)
-    out_series = out_series.dropna()
+    speclib_df = speclib_df.dropna()
 
     # Write the resulting speclib to file.
     with ProgressBar():
-        out_series.to_csv(args.outfile, sep='\t', na_rep='NaN', index=False, header=True, single_file=True)
+        if args.outformat == 'tsv':
+            speclib_df.to_csv(args.outfile, sep='\t', na_rep='NaN', index=False, header=True, single_file=True)
+        elif args.outformat == 'parquet':
+            speclib_df.to_parquet(args.outfile)
