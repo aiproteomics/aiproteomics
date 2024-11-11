@@ -9,6 +9,9 @@ import pandas as pd
 from pyteomics import mass
 
 
+MASS_pY = 216.043 # phosphorylation diagnostic peak
+ANNOTATION_pY = "pY"
+
 @dataclass
 class Fragment:
     fragment_type: str
@@ -71,6 +74,7 @@ class Spectrum:
     precursor_mz: float
     precursor_sequence: str
     precursor_charge: int
+    pY: float
     iRT: float
     ccs: float
     products: list
@@ -81,6 +85,8 @@ class Spectrum:
     def to_dataframe(self):
 
         num_products = len(self.products)
+        if self.pY:
+            num_products += 1
 
         # Set the data types of the output columns
         # First set the values that are the same for all product fragments
@@ -111,6 +117,16 @@ class Spectrum:
             out_dict["FragmentCharge"][i] = product.frag.fragment_charge
             out_dict["FragmentSeriesNumber"][i] = product.frag.fragment_series_number
             out_dict["FragmentLossType"][i] = product.frag.fragment_loss_type
+
+        # If the pY diagnostic peak is provided, add that as the final entry
+        if self.pY:
+            out_dict["ProductMz"][-1] = MASS_pY
+            out_dict["Annotation"][-1] = ANNOTATION_pY
+            out_dict["LibraryIntensity"][-1] = self.pY
+            out_dict["FragmentType"][-1] = ANNOTATION_pY
+            out_dict["FragmentCharge"][-1] = 0
+            out_dict["FragmentSeriesNumber"][-1] = 0
+            out_dict["FragmentLossType"][-1] = ''
 
         return pd.DataFrame(out_dict)
 
@@ -174,7 +190,7 @@ def get_ion_mz(seq, frag: Fragment, aa_mass):
 
 
 
-def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_charge, iRT, ccs, thresh=0.1):
+def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_charge, pY=None, iRT=None, ccs=None, thresh=0.1):
 
     # Work out length of input sequence (in amino acids) so that the
     # relevant portion of the output layer can be considered
@@ -189,7 +205,6 @@ def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_cha
     peaks = output_layer_truncated > thresh
     frag_list = zip(frag_key[peaks], output_layer_truncated[peaks])
 
-
     # Calc precursor m/z
     precursor_mz = mass.fast_mass(sequence=sequence, charge=precursor_charge, aa_mass=aa_mass, ion_type='M')
 
@@ -200,10 +215,16 @@ def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_cha
                                 get_ion_mz(sequence, frag, aa_mass)
                                 ) for frag, intensity in frag_list]
 
+    # Include pY diagnostic peak only if above threshold
+    # (and provided)
+    if pY and pY < thresh:
+        pY = None
+
     return Spectrum(
                 precursor_mz=precursor_mz,
                 precursor_sequence=sequence,
                 precursor_charge=precursor_charge,
+                pY=pY,
                 iRT=iRT,
                 ccs=ccs,
                 products=products)
@@ -223,7 +244,7 @@ if __name__ == "__main__":
     output_layer = np.random.random(392)
 
     # Convert to spectrum
-    spectrum = output_layer_to_spectrum(output_layer, model_params, "*SSS1TT221", 1, 0, 0, thresh=0.9)
+    spectrum = output_layer_to_spectrum(output_layer, model_params, "*SSS1TT221", 0, pY=0.97, iRT=1, ccs=0, thresh=0.9)
 
 
     spectrum_df = spectrum.to_dataframe()
