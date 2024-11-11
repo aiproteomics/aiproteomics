@@ -8,6 +8,7 @@ import re
 import csv
 
 import dask.dataframe as dd
+from dask.diagnostics import ProgressBar
 
 from pyteomics import mass
 
@@ -266,4 +267,6 @@ if __name__ == "__main__":
 
     # Write the resulting speclib to file. Note that the following is something of an
     # abuse of the csv writer, so a better (still performant) solution is needed
-    out_series.to_csv(args.outfile, sep='|', escapechar=' ', index=False, quoting=csv.QUOTE_NONE, quotechar="", na_rep='NaN', header=True, single_file=True)
+    with ProgressBar():
+        out_series.to_csv(
+                args.outfile, sep='|', escapechar=' ', index=False, quoting=csv.QUOTE_NONE, quotechar="", na_rep='NaN', header=True, single_file=True)
