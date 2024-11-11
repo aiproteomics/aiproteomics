@@ -93,7 +93,7 @@ def get_ion_mz(seq, ion_type, ion_break, ion_charge, aa_mass):
     if ion_type[0] in 'abc':
         # If the first entry is acetylation, skip it as not real amino acid (check this!)
         if seq[0] == '*':
-            frag_seq = seq[1:ion_break+1]
+            frag_seq = seq[:ion_break+1]
         else:
             frag_seq = seq[:ion_break]
     else:
