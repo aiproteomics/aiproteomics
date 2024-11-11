@@ -60,7 +60,8 @@ if __name__ == "__main__":
     # Parse commandline arguments. Input and output filenames must be provided.
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--infile', type=str, help='The input speclib file you wish to convert.', required=True)
-    parser.add_argument('-o', '--outfile', type=str, help='The output tsv format PSM file.', required=True)
+    parser.add_argument('-o', '--outfile', type=str, help='The output (PSM) filename.', required=True)
+    parser.add_argument('-f', '--outformat', type=str, choices=['tsv', 'parquet'], help='The output format.', required=True)
     parser.add_argument('-n', '--num-partitions', type=int, default=1, help='Number of partitions to use with Dask.')
     args = parser.parse_args(sys.argv[1:len(sys.argv)])
 
@@ -77,4 +78,8 @@ if __name__ == "__main__":
     # Compute and write to tsv
     speclib_df = speclib_df[output_headings_order]
     with ProgressBar():
-        speclib_df.to_csv(args.outfile, sep='\t', single_file=True, header=True, index=False)
+        if args.outformat == 'tsv':
+            speclib_df.to_csv(args.outfile, sep='\t', single_file=True, header=True, index=False)
+        elif args.outformat == 'parquet':
+            speclib_df.to_parquet(args.outfile)
+
