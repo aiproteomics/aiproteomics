@@ -59,6 +59,7 @@ aa_mod_map = {
 
 aa_mass = generate_aa_mass()
 
+
 def generate_unmodified_peptide_sequence(modified_seq):
     """ For a given peptide sequence, `modified_seq`, containing modification
         notation in the form '(UniMod:X)', this function will return the
@@ -89,18 +90,16 @@ def unimod_to_single_char_sequence(seq, ignore_unsupported=False):
 
 def get_ion_mz(seq, ion_type, ion_break, ion_charge, aa_mass):
 
-
     if ion_type[0] in 'abc':
-        frag_seq = seq[:ion_break]
-    else:
         # If the first entry is acetylation, skip it as not real amino acid (check this!)
         if seq[0] == '*':
-            frag_seq = seq[ion_break + 1:]
+            frag_seq = seq[1:ion_break+1]
         else:
-            frag_seq = seq[ion_break:]
+            frag_seq = seq[:ion_break]
+    else:
+        frag_seq = seq[-ion_break:]
 
     return mass.fast_mass(frag_seq, ion_type=ion_type, charge=ion_charge, aa_mass=aa_mass)
-
 
 
 def parse_ion(ion):
