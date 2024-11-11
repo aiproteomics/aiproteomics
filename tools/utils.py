@@ -12,8 +12,14 @@ def generate_unmodified_peptide_sequence(modified_seq):
 
 
 def unimod_to_single_char_sequence(seq, ignore_unsupported=False):
-    seq = seq.strip()
-    seq = seq.strip('_')
+    """
+        Takes a peptide sequence `seq` as input, encoded as a string with UniMod modifiers.
+        For example, "_(UniMod:1)AAAAKPNNLS(UniMod:21)LVVHGPGDLR_".
+        Converts this to a sequence of 1 character per amino acid, according to the
+        mapping given in `definitions.aa_mod_map`.
+    """
+
+    seq = seq.strip().strip('_')
 
     for k, v in aa_mod_map.items():
         if '(' not in seq:
