@@ -1,7 +1,3 @@
-# LOOKS WRONG in pyteomics - Check if y and b ions have correct OH, H additions
-
-# Check about pY charge and fragment values (need integers)
-
 import sys
 import argparse
 import re
