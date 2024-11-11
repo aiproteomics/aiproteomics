@@ -1,7 +1,11 @@
+import sys
+
 from dataclasses import dataclass
 import itertools as it
+from typing import Optional
 
 import numpy as np
+import pandas as pd
 from pyteomics import mass
 
 
@@ -70,56 +74,45 @@ class Spectrum:
     iRT: float
     ccs: float
     products: list
+    precursor_unmodified: Optional[str] = None
+    protein_id: Optional[str] = None
+    gene_name: Optional[str] = None
 
-    def to_tsv(self, unknown_value_str='NA', intensity_scale=10000):
+    def to_dataframe(self):
 
-        s = ''
+        num_products = len(self.products)
 
-        # Add rows for each fragment
-        for product in self.products:
+        # Set the data types of the output columns
+        # First set the values that are the same for all product fragments
+        out_dict = {
+                "PrecursorMz": np.full(num_products, self.precursor_mz, dtype="float32"),
+                "ProductMz": np.full(num_products, 0.0, dtype="float32"),
+                "Annotation": np.empty(num_products, dtype="object"),
+                "ProteinId": np.full(num_products, self.protein_id, dtype="object"),
+                "GeneName": np.full(num_products, self.gene_name, dtype="object"),
+                "PeptideSequence": np.full(num_products, self.precursor_unmodified, dtype="object"),
+                "ModifiedPeptideSequence": np.full(num_products, self.precursor_sequence, dtype="object"),
+                "PrecursorCharge": np.full(num_products, self.precursor_charge, dtype="int32"),
+                "LibraryIntensity": np.full(num_products, 0.0, dtype="float32"),
+                "NormalizedRetentionTime": np.full(num_products, self.iRT, dtype="float32"),
+                "PrecursorIonMobility": np.full(num_products, self.ccs, dtype="float32"),
+                "FragmentType": np.empty(num_products, dtype="object"),
+                "FragmentCharge": np.full(num_products, 0, dtype="int32"),
+                "FragmentSeriesNumber": np.full(num_products, 0, dtype="int32"),
+                "FragmentLossType": np.empty(num_products, dtype="object")
+        }
 
-            # Collect the values for each column describing a particular peak
-            row = [
-                str(self.precursor_mz),
-                str(product.mz),
-                product.frag.annotation,
-                unknown_value_str,
-                unknown_value_str,
-                self.precursor_sequence,
-                self.precursor_sequence,
-                str(self.precursor_charge),
-                str(product.intensity * intensity_scale),
-                str(self.iRT),
-                str(self.ccs),
-                product.frag.fragment_type,
-                str(product.frag.fragment_charge),
-                str(product.frag.fragment_series_number),
-                product.frag.fragment_loss_type
-            ]
-            # Add the row to the output string
-            s += '\t'.join(row) + '\n'
+        # Now add the fragment specific data
+        for i, product in enumerate(self.products):
+            out_dict["ProductMz"][i] = product.mz
+            out_dict["Annotation"][i] = product.frag.annotation
+            out_dict["LibraryIntensity"][i] = product.intensity
+            out_dict["FragmentType"][i] = product.frag.fragment_type
+            out_dict["FragmentCharge"][i] = product.frag.fragment_charge
+            out_dict["FragmentSeriesNumber"][i] = product.frag.fragment_series_number
+            out_dict["FragmentLossType"][i] = product.frag.fragment_loss_type
 
-        return s
-
-    def get_tsv_format_header(self):
-        tsv_columns = [
-            "PrecursorMz",
-            "ProductMz",
-            "Annotation",
-            "ProteinId",
-            "GeneName",
-            "PeptideSequence",
-            "ModifiedPeptideSequence",
-            "PrecursorCharge",
-            "LibraryIntensity",
-            "NormalizedRetentionTime",
-            "PrecursorIonMobility",
-            "FragmentType",
-            "FragmentCharge",
-            "FragmentSeriesNumber",
-            "FragmentLossType"
-        ]
-        return '\t'.join(tsv_columns) + '\n'
+        return pd.DataFrame(out_dict)
 
 
 def generate_aa_mass():
@@ -216,20 +209,25 @@ def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_cha
                 products=products)
 
 
-model_params = ModelParams(seq_len=50, ions=['y','b'], num_charges=2, neutral_losses=['', 'H3PO4'])
-print(model_params)
 
-frag_list = model_params.generate_fragment_list()
+if __name__ == "__main__":
+    model_params = ModelParams(seq_len=50, ions=['y','b'], num_charges=2, neutral_losses=['', 'H3PO4'])
+    print(model_params)
 
-print("Length:", len(frag_list))
-print([frag.annotation for frag in frag_list])
+    frag_list = model_params.generate_fragment_list()
 
-# Create random output layer
-output_layer = np.random.random(392)
+    print("Length:", len(frag_list))
+    print([frag.annotation for frag in frag_list])
 
-# Convert to spectrum
-spectrum = output_layer_to_spectrum(output_layer, model_params, "*SSS1TT221", 1, 0, 0, thresh=0.9)
+    # Create random output layer
+    output_layer = np.random.random(392)
 
-print(spectrum.get_tsv_format_header())
-print(spectrum.to_tsv())
+    # Convert to spectrum
+    spectrum = output_layer_to_spectrum(output_layer, model_params, "*SSS1TT221", 1, 0, 0, thresh=0.9)
 
+
+    spectrum_df = spectrum.to_dataframe()
+    print(spectrum_df)
+
+    spectrum_df.to_csv('test_spectrum.tsv', sep='\t')
+    spectrum_df.to_parquet('test_spectrum.parquet')
