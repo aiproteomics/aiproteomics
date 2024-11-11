@@ -52,7 +52,7 @@ class ModelParams:
         frag_iter = it.product(
                             range(1, self.seq_len),
                             self.ions,
-                            range(self.num_charges),
+                            range(1, self.num_charges + 1),
                             self.neutral_losses)
 
         frag_list = np.array([Fragment(ion, charge, cleavage, loss) for cleavage, ion, charge, loss in frag_iter])
