@@ -179,7 +179,6 @@ mass_neutral_loss = {
 
 aa_mass = generate_aa_mass()
 
-
 def get_ion_mz(seq, frag: Fragment, aa_mass):
     """
     Calculate the mass of the given fragment for the given sequence.
@@ -189,20 +188,17 @@ def get_ion_mz(seq, frag: Fragment, aa_mass):
     ion_break = frag.fragment_series_number
     ion_charge = frag.fragment_charge
 
-    if ion_break > len(seq):
-        print(seq, ion_break, ion_type)
 
     if ion_type[0] in 'abc':
-        frag_seq = seq[:ion_break]
-    else:
         # If the first entry is acetylation, skip it as not real amino acid (check this!)
         if seq[0] == '*':
-            frag_seq = seq[ion_break + 1:]
+            frag_seq = seq[:ion_break+1]
         else:
-            frag_seq = seq[ion_break:]
+            frag_seq = seq[:ion_break]
+    else:
+        frag_seq = seq[-ion_break:]
 
     return mass.fast_mass(frag_seq, ion_type=ion_type, charge=ion_charge, aa_mass=aa_mass)
-
 
 
 def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_charge, pY=None, iRT=None, ccs=None, thresh=0.1):
