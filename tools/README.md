@@ -3,18 +3,16 @@
 This directory contains various tools for pre- and post- processing, and conversion.
 
 ## `psm2speclib`
-This tool converts a PSM style tsv formatted file to a corresponding spectral library (also tsv formatted)
+This tool converts a PSM style tsv or parquet formatted file(s) to a corresponding spectral library (also tsv or parquet formatted)
 containing a row per product.
-
-### Requirements
-Currently it requires a minimum of `dask 2024.10.0` and `pyteomics 4.7.5`. The dask version
-may clash with the current tensorflow version requirements (which are very rigid).
 
 ### Running
 It can be run with, e.g.
 ```
-python psm2speclib.py -i in_psm.tsv -o out_speclib.tsv
+python psm2speclib.py -i in_psm.tsv -o out_speclib.parquet --informat tsv --outformat parquet
 ```
+to convert a psm in tsv format to a spectral lib in parquet format. The input and output formats
+do not have to be the same.
 
 To see help on all options:
 ```
@@ -27,9 +25,8 @@ not supported. By default, the tool with throw an error if it finds a sequence w
 To ignore any such sequences, use the `--ignore-unsupported` (or simply `-I`) option:
 
 ```
-python psm2speclib.py -i in_psm.tsv -o out_speclib.tsv --ignore_unsupported
+python psm2speclib.py -i in_psm.parquet/ -o out_speclib.tsv --ignore_unsupported --informat parquet --outformat tsv
 ```
-
 
 ## `speclib2psm`
 This tool does the reverse conversion as `psm2speclib`. It takes an input tsv formatted spectral library
@@ -38,8 +35,10 @@ and converts to a PSM style tsv file.
 ### Running
 It can be run with e.g.
 ```
-python speclib2psm.py -i speclib.tsv -o test_psm.tsv
+python speclib2psm.py -i speclib.parquet/ -o test_psm.parquet/ --informat parquet --outformat parquet
 ```
+
+The format options are the same as for `psm2speclib`.
 
 To see help on all options:
 ```
