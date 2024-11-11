@@ -58,14 +58,18 @@ if __name__ == "__main__":
 
     # Parse commandline arguments. Input and output filenames must be provided.
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--infile', type=str, help='The input speclib file you wish to convert.', required=True)
-    parser.add_argument('-o', '--outfile', type=str, help='The output (PSM) filename.', required=True)
-    parser.add_argument('-f', '--outformat', type=str, choices=['tsv', 'parquet'], help='The output format.', required=True)
+    parser.add_argument('-i', '--inpath', type=str, help='The input speclib file you wish to convert.', required=True)
+    parser.add_argument('-o', '--outpath', type=str, help='The output (PSM) filename.', required=True)
+    parser.add_argument('-f', '--informat', type=str, choices=['tsv', 'parquet'], help='The input format. If tsv, inpath is expected to be a tsv file. If parquet, inpath is expected to be a directory of parquet files.', required=True)
+    parser.add_argument('-g', '--outformat', type=str, choices=['tsv', 'parquet'], help='The output format.', required=True)
     parser.add_argument('-n', '--num-partitions', type=int, default=1, help='Number of partitions to use with Dask.')
     args = parser.parse_args(sys.argv[1:len(sys.argv)])
 
-    # Read input speclib tsv file
-    speclib_df = dd.read_csv(args.infile, sep='\t')
+    # Read input speclib file according to specified format
+    if args.informat == 'tsv':
+        speclib_df = dd.read_csv(args.inpath, sep='\t')
+    else:
+        speclib_df = dd.read_parquet(args.inpath)
 
     # Drop unneeded columns (this can take about 30% off the compute, depending on sizes)
     speclib_df = speclib_df.drop(drop_columns, axis=1)
@@ -78,6 +82,6 @@ if __name__ == "__main__":
     speclib_df = speclib_df[output_headings_order]
     with ProgressBar():
         if args.outformat == 'tsv':
-            speclib_df.to_csv(args.outfile, sep='\t', single_file=True, header=True, index=False)
+            speclib_df.to_csv(args.outpath, sep='\t', single_file=True, header=True, index=False)
         elif args.outformat == 'parquet':
-            speclib_df.to_parquet(args.outfile)
+            speclib_df.to_parquet(args.outpath)
