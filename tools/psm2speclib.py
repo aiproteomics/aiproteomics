@@ -5,7 +5,6 @@
 import sys
 import argparse
 import re
-import csv
 
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
@@ -117,7 +116,7 @@ def parse_ion(ion):
     # Attempt to split into ion and neutral loss
     ion_split = ion[1:].split('-')
     ion_part = ion_split[0]
-    neutral_loss = None
+    neutral_loss = ""
 
     # If neutral loss
     if len(ion_split) == 2:
@@ -145,14 +144,22 @@ def parse_ion(ion):
     return (ion_type, ion_break, ion_charge, neutral_loss)
 
 
-def parse_ions(matches, intensities, seq):
+def parse_ions(str_matches, str_intensities, seq):
 
     # Parse each ion in the semi-colon separated list of matches.
-    # Extract the type (y, b, a or pY), the cleavage point,
+    # Extract the type (y, b, a or pY), the breakage point,
     # and the neutral loss (H2O, NH3, H3PO4 or none). Use these
     # to calculate the m/z of the corresponding fragment.
 
-    for annotation, intensity in zip(matches.strip().split(';'), intensities.strip().split(';')):
+    annotations = []
+    intensities = []
+    ion_mzs = []
+    ion_types = []
+    ion_breaks = []
+    ion_charges = []
+    losses = []
+
+    for annotation, intensity in zip(str_matches.strip().split(';'), str_intensities.strip().split(';')):
 
         parsed_ion = parse_ion(annotation)
 
@@ -169,13 +176,42 @@ def parse_ions(matches, intensities, seq):
         if neutral_loss:
             ion_mz -= mass_neutral_loss[neutral_loss]
 
-        yield {"Annotation": annotation,
-               "LibraryIntensity": intensity,
-               "ProductMz": ion_mz,
-               "FragmentType": ion_type,
-               "FragmentSeriesNumber": ion_break,
-               "FragmentCharge": ion_charge,
-               "FragmentLossType": neutral_loss}
+        annotations.append(annotation)
+        intensities.append(intensity)
+        ion_mzs.append(ion_mz)
+        ion_types.append(ion_type)
+        ion_breaks.append(ion_break)
+        ion_charges.append(ion_charge)
+        losses.append(neutral_loss)
+
+
+    return {"Annotation": annotations,
+            "LibraryIntensity": intensities,
+            "ProductMz": ion_mzs,
+            "FragmentType": ion_types,
+            "FragmentSeriesNumber": ion_breaks,
+            "FragmentCharge": ion_charges,
+            "FragmentLossType": losses}
+
+
+# Specify types for each of the output columns from the initial mapping.
+# "object" is used for those columns that will contain a list (since the
+# value is different for each fragment).
+out_dtypes = {
+    "PrecursorMz": "string",
+    "ProductMz": "object",
+    "Annotation": "object",
+    "PeptideSequence": "string",
+    "ModifiedPeptideSequence": "string",
+    "PrecursorCharge": "int32",
+    "LibraryIntensity": "object",
+    "NormalizedRetentionTime": "float32",
+    "PrecursorIonMobility": "float32",
+    "FragmentType": "object",
+    "FragmentCharge": "object",
+    "FragmentSeriesNumber": "object",
+    "FragmentLossType": "object"
+}
 
 
 def map_psm_row(row, ignore_unsupported=True):
@@ -196,51 +232,25 @@ def map_psm_row(row, ignore_unsupported=True):
     precursor_mz = mass.fast_mass(sequence=seq, charge=precursor_charge, aa_mass=aa_mass, ion_type='M')
     unmodified_peptide_sequence = generate_unmodified_peptide_sequence(modified_peptide_sequence)
 
-    # Get the list of product rows to output (in string form)
-    output_rows = []
-    for ion in parse_ions(matches, intensities, seq):
-        output_rows.append('\t'.join(map(str, [
-            precursor_mz,
-            ion["ProductMz"],
-            ion["Annotation"],
-            unmodified_peptide_sequence,
-            modified_peptide_sequence,
-            precursor_charge,
-            ion["LibraryIntensity"],
-            normalized_retention_time,
-            precursor_ion_mobility,
-            ion["FragmentType"],
-            ion["FragmentCharge"],
-            ion["FragmentSeriesNumber"],
-            ion["FragmentLossType"]
-            ])))
 
-    # Put newlines between each row, except last row (csv writer will add that)
-    s = '\n'.join(output_rows)
+    # First set the properties that come from the precursor
+    result = dict.fromkeys(out_dtypes.keys())
+    result["PrecursorMz"] = precursor_mz
+    result["PeptideSequence"] = unmodified_peptide_sequence
+    result["ModifiedPeptideSequence"] = modified_peptide_sequence
+    result["PrecursorCharge"] = precursor_charge
+    result["NormalizedRetentionTime"] = normalized_retention_time
+    result["PrecursorIonMobility"] = precursor_ion_mobility
 
-    # TODO: Make an adaptable format writer for each row of output
-    # that handles missing values gracefully
-    if len(output_rows) == 0:
+    # Next get the properties of each fragment
+    ions_dict = parse_ions(matches, intensities, seq)
+    result.update(ions_dict)
+
+    if len(ions_dict["Annotation"]) == 0:
         return None
 
-    return s
+    return result
 
-
-out_cols = [
-    "PrecursorMz",
-    "ProductMz",
-    "Annotation",
-    "PeptideSequence",
-    "ModifiedPeptideSequence",
-    "PrecursorCharge",
-    "LibraryIntensity",
-    "NormalizedRetentionTime",
-    "PrecursorIonMobility",
-    "FragmentType",
-    "FragmentCharge",
-    "FragmentSeriesNumber",
-    "FragmentLossType"
-]
 
 if __name__ == "__main__":
 
@@ -252,20 +262,27 @@ if __name__ == "__main__":
     parser.add_argument('-n', '--num-partitions', type=int, default=1, help='Number of partitions to use with Dask.')
     args = parser.parse_args(sys.argv[1:len(sys.argv)])
 
-    # Read input PSM tsv file and convert each of its rows to multiple lines of speclib output
+    # Read input PSM tsv file and make lists of fragment info for each row
     psm_df = dd.read_csv(args.infile, sep='\t')
     psm_df = psm_df.repartition(npartitions=args.num_partitions)
     out_series = psm_df.map_partitions(lambda part : part.apply(
-        lambda row: map_psm_row(row, ignore_unsupported=args.ignore_unsupported), axis=1), meta=('speclib_str', 'string'))
+        lambda row: map_psm_row(row, ignore_unsupported=args.ignore_unsupported), axis=1, result_type='expand'), meta=out_dtypes)
+
+    # Explode the lists so that we get 1 row per fragment
+    explode_cols = [
+        "ProductMz",
+        "Annotation",
+        "LibraryIntensity",
+        "FragmentType",
+        "FragmentCharge",
+        "FragmentSeriesNumber",
+        "FragmentLossType"
+    ]
+    out_series = out_series.explode(column=explode_cols)
 
     # Drop empty rows (corresponds to input sequences that had no matches - e.g. set to nan)
     out_series = out_series.dropna()
 
-    # Add string to use as header of output tsv
-    out_series = out_series.rename('\t'.join(out_cols))
-
-    # Write the resulting speclib to file. Note that the following is something of an
-    # abuse of the csv writer, so a better (still performant) solution is needed
+    # Write the resulting speclib to file.
     with ProgressBar():
-        out_series.to_csv(
-                args.outfile, sep='|', escapechar=' ', index=False, quoting=csv.QUOTE_NONE, quotechar="", na_rep='NaN', header=True, single_file=True)
+        out_series.to_csv(args.outfile, sep='\t', na_rep='NaN', index=False, header=True, single_file=True)
