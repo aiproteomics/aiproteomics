@@ -48,12 +48,18 @@ class ModelParams:
         """
 
         frag_iter = it.product(
+                            range(1, self.seq_len), # neutral
+                            self.ions, # len
+                            range(1, self.num_charges + 1), # type
+                            self.neutral_losses) # charge
+
+        frag_iter = it.product(
+                            self.neutral_losses,
                             range(1, self.seq_len),
                             self.ions,
-                            range(1, self.num_charges + 1),
-                            self.neutral_losses)
+                            range(1, self.num_charges + 1))
 
-        frag_list = np.array([Fragment(ion, charge, cleavage, loss) for cleavage, ion, charge, loss in frag_iter])
+        frag_list = np.array([Fragment(ion, charge, cleavage, loss) for loss, cleavage, ion, charge in frag_iter])
 
         if input_seq_len:
             return frag_list[:input_seq_len * len(self.ions) * self.num_charges * len(self.neutral_losses)]
@@ -200,6 +206,9 @@ def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_cha
     # and get the list of fragments that correspond to that.
     frag_key = model_params.generate_fragment_list(input_seq_len=input_seq_len)
     output_layer_truncated = output_layer[:len(frag_key)]
+
+    ### mask charges greater than precursor charge
+
     peaks = output_layer_truncated > thresh
     frag_list = zip(frag_key[peaks], output_layer_truncated[peaks])
 
