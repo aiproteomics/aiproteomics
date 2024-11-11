@@ -7,97 +7,51 @@ from dask.diagnostics import ProgressBar
 
 from pyteomics import mass
 
-# TODO: Move this to settings
+from definitions import MASS_pY, get_ion_mz, aa_mass, mass_neutral_loss
+from utils import generate_unmodified_peptide_sequence, unimod_to_single_char_sequence
+
+# The ions supported by this conversion tool
 ALLOWED_IONS = ['y', 'b', 'a']
-MASS_pY = 216.043 # phosphorylation diagnostic peak
 
-
-def generate_aa_mass():
-    db = mass.Unimod()
-    aa_comp = mass.std_aa_comp.copy()
-
-    # Get relevant modifcations from unimod database
-    oxidation = db.by_title("Oxidation")["composition"]
-    phospho = db.by_title("Phospho")["composition"]
-    carbamidomethyl = db.by_title("Carbamidomethyl")["composition"]
-    acetyl = db.by_title("Acetyl")["composition"]
-
-    # Generate modified amino acid compositions
-    aa_comp["1"] = aa_comp["M"] + oxidation
-    aa_comp["2"] = aa_comp["S"] + phospho
-    aa_comp["3"] = aa_comp["T"] + phospho
-    aa_comp["4"] = aa_comp["Y"] + phospho
-    aa_comp["*"] = acetyl
-    aa_comp["C"] = aa_comp["C"] + carbamidomethyl
-
-    # Get masses
-    aa_mass = {k: mass.calculate_mass(v) for k, v in aa_comp.items()}
-
-    return aa_mass
-
-
-# Neutral losses
-mass_neutral_loss = {
-    "H2O": mass.calculate_mass(formula='H2O'),
-    "NH3": mass.calculate_mass(formula='NH3'),
-    "H3PO4": mass.calculate_mass(formula='H3PO4')
+# Specify types for each of the output columns of the speclib file.
+out_dtypes = {
+    "PrecursorMz": "float32",
+    "ProductMz": "float32",
+    "Annotation": "string",
+    "PeptideSequence": "string",
+    "ModifiedPeptideSequence": "string",
+    "PrecursorCharge": "int32",
+    "LibraryIntensity": "float32",
+    "NormalizedRetentionTime": "float32",
+    "PrecursorIonMobility": "float32",
+    "FragmentType": "string",
+    "FragmentCharge": "int32",
+    "FragmentSeriesNumber": "int32",
+    "FragmentLossType": "string"
 }
 
-aa_mod_map = {
-        'M(UniMod:35)': '1',
-        'S(UniMod:21)': '2',
-        'T(UniMod:21)': '3',
-        'Y(UniMod:21)': '4',
-        '(UniMod:1)':   '*',
-        'C(UniMod:4)':  'C'
-}
-
-aa_mass = generate_aa_mass()
-
-
-def generate_unmodified_peptide_sequence(modified_seq):
-    """ For a given peptide sequence, `modified_seq`, containing modification
-        notation in the form '(UniMod:X)', this function will return the
-        sequence absent any modification text (by simply removing anything
-        in brackets `()`).
-    """
-    return re.sub(r"[\(].*?[\)]", "", modified_seq)
-
-
-def unimod_to_single_char_sequence(seq, ignore_unsupported=False):
-    seq = seq.strip()
-    seq = seq.strip('_')
-
-    for k, v in aa_mod_map.items():
-        if '(' not in seq:
-            break
-        seq = seq.replace(k, v)
-
-    # If there are still modifications present, then they
-    # are not supported.
-    if '(' in seq:
-        if ignore_unsupported:
-            return None
-        raise ValueError(f'Sequence {seq} contains unsupported amino acid modifications. List of supported mods: {aa_mod_map.keys()}')
-
-    return seq
-
-
-def get_ion_mz(seq, ion_type, ion_break, ion_charge, aa_mass):
-
-    if ion_type[0] in 'abc':
-        # If the first entry is acetylation, skip it as not real amino acid (check this!)
-        if seq[0] == '*':
-            frag_seq = seq[:ion_break+1]
-        else:
-            frag_seq = seq[:ion_break]
-    else:
-        frag_seq = seq[-ion_break:]
-
-    return mass.fast_mass(frag_seq, ion_type=ion_type, charge=ion_charge, aa_mass=aa_mass)
+# Columns corresponding to info about each fragment
+explode_cols = [
+    "ProductMz",
+    "Annotation",
+    "LibraryIntensity",
+    "FragmentType",
+    "FragmentCharge",
+    "FragmentSeriesNumber",
+    "FragmentLossType"
+]
 
 
 def parse_ion(ion):
+    """
+        For a given ion annotation, `ion` (e.g. "y3(2+)-H2O") this function
+        will parse the constituent information, returning a tuple of:
+        `ion_type` (e.g. 'y')
+        `ion_break` (e.g. 3, the point in the sequence where breakage occured)
+        `ion_charge` (e.g. 12)
+        `neutral_loss` (e.g. "H2O". If no loss, this is an empty string)
+    """
+
     if 'nan' in ion:
         return None
 
@@ -141,11 +95,15 @@ def parse_ion(ion):
 
 
 def parse_ions(str_matches, str_intensities, seq):
+    """
+        Parse each ion in the semi-colon separated list of matches.
+        Extract the type (y, b, a or pY), the breakage point,
+        and the neutral loss (H2O, NH3, H3PO4 or none). Use these
+        to calculate the m/z of the corresponding fragment.
 
-    # Parse each ion in the semi-colon separated list of matches.
-    # Extract the type (y, b, a or pY), the breakage point,
-    # and the neutral loss (H2O, NH3, H3PO4 or none). Use these
-    # to calculate the m/z of the corresponding fragment.
+        Returns a dict containing the above information. Values are
+        lists of length N where N is the number of product fragments.
+    """
 
     annotations = []
     intensities = []
@@ -190,36 +148,14 @@ def parse_ions(str_matches, str_intensities, seq):
             "FragmentLossType": losses}
 
 
-# Specify types for each of the output columns of the speclib file.
-out_dtypes = {
-    "PrecursorMz": "float32",
-    "ProductMz": "float32",
-    "Annotation": "string",
-    "PeptideSequence": "string",
-    "ModifiedPeptideSequence": "string",
-    "PrecursorCharge": "int32",
-    "LibraryIntensity": "float32",
-    "NormalizedRetentionTime": "float32",
-    "PrecursorIonMobility": "float32",
-    "FragmentType": "string",
-    "FragmentCharge": "int32",
-    "FragmentSeriesNumber": "int32",
-    "FragmentLossType": "string"
-}
-
-# Columns corresponding to info about each fragment
-explode_cols = [
-    "ProductMz",
-    "Annotation",
-    "LibraryIntensity",
-    "FragmentType",
-    "FragmentCharge",
-    "FragmentSeriesNumber",
-    "FragmentLossType"
-]
-
-
 def map_psm_row(row, ignore_unsupported=True):
+    """
+    Parses all ions in the `Matches` column of the input row, and calculates the m/z
+    for each corresponding product. Returns a dict containing all the columns specified
+    in `out_dtypes`. For columns that have more than one value (e.g. the `LibraryIntensity`
+    column) a list will be given.
+    """
+
     modified_peptide_sequence = row['Modified.sequence']
     precursor_charge = row['Charge']
     matches = row['Matches']
