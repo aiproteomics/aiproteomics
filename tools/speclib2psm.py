@@ -60,7 +60,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--inpath', type=str, help='The input speclib file you wish to convert.', required=True)
     parser.add_argument('-o', '--outpath', type=str, help='The output (PSM) filename.', required=True)
-    parser.add_argument('-f', '--informat', type=str, choices=['tsv', 'parquet'], help='The input format. If tsv, inpath is expected to be a tsv file. If parquet, inpath is expected to be a directory of parquet files.', required=True)
+    parser.add_argument('-f', '--informat', type=str, choices=['tsv', 'parquet'],
+                        help='The input format. If tsv, inpath is expected to be a tsv file. '
+                        'If parquet, inpath is expected to be a directory of parquet files.',
+                        required=True)
     parser.add_argument('-g', '--outformat', type=str, choices=['tsv', 'parquet'], help='The output format.', required=True)
     parser.add_argument('-n', '--num-partitions', type=int, default=1, help='Number of partitions to use with Dask.')
     args = parser.parse_args(sys.argv[1:len(sys.argv)])

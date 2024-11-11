@@ -1,6 +1,5 @@
 import sys
 import argparse
-import re
 
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
@@ -200,7 +199,10 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--inpath', type=str, help='The input PSM file you wish to convert.', required=True)
     parser.add_argument('-o', '--outpath', type=str, help='The path to write the output (a file for tsv, a directory for parquet).', required=True)
     parser.add_argument('-I', '--ignore-unsupported', action="store_true", default=False, help='Ignore unsupported modified sequences.')
-    parser.add_argument('-f', '--informat', type=str, choices=['tsv', 'parquet'], help='The input format. If tsv, inpath is expected to be a tsv file. If parquet, inpath is expected to be a directory of parquet files.', required=True)
+    parser.add_argument('-f', '--informat', type=str, choices=['tsv', 'parquet'],
+                        help='The input format. If tsv, inpath is expected to be a tsv file. '
+                             'If parquet, inpath is expected to be a directory of parquet files.',
+                        required=True)
     parser.add_argument('-g', '--outformat', type=str, choices=['tsv', 'parquet'], help='The output format.', required=True)
     parser.add_argument('-n', '--num-partitions', type=int, default=1, help='Number of partitions to use with Dask.')
     args = parser.parse_args(sys.argv[1:len(sys.argv)])
