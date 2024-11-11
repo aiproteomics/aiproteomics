@@ -48,12 +48,6 @@ class ModelParams:
         """
 
         frag_iter = it.product(
-                            range(1, self.seq_len), # neutral
-                            self.ions, # len
-                            range(1, self.num_charges + 1), # type
-                            self.neutral_losses) # charge
-
-        frag_iter = it.product(
                             self.neutral_losses,
                             range(1, self.seq_len),
                             self.ions,
@@ -65,6 +59,7 @@ class ModelParams:
             return frag_list[:input_seq_len * len(self.ions) * self.num_charges * len(self.neutral_losses)]
 
         return frag_list
+
 
 @dataclass
 class SpectrumEntry:
