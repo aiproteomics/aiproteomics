@@ -36,17 +36,19 @@ class ModelParams:
     num_charges: int
     neutral_losses: list
 
-    def generate_fragment_list(self, input_seq_len=None):
+    def __post_init__(self):
+        """
+            Fragment list is generated and the result stored with the object
+            since it won't change and is used a lot.
+        """
+        self.fragments = self.generate_fragment_list()
+
+
+    def generate_fragment_list(self):
         """
             Generate permutations of fragments possible for the output layer
             of the model described by this `model_params` object.
-
-            By default, this function assumes a sequence of the maximum size
-            allowed in this model (`seq_len`). However, if `input_seq_len` is
-            passed, the returned list is truncated to only those fragments which
-            are possible for a sequence of that length.
         """
-
         frag_iter = it.product(
                             self.neutral_losses,
                             range(1, self.seq_len),
@@ -55,10 +57,24 @@ class ModelParams:
 
         frag_list = np.array([Fragment(ion, charge, cleavage, loss) for loss, cleavage, ion, charge in frag_iter])
 
-        if input_seq_len:
-            return frag_list[:input_seq_len * len(self.ions) * self.num_charges * len(self.neutral_losses)]
-
         return frag_list
+
+
+    def generate_mask(self, input_seq_len=None, precursor_charge=None):
+        """
+            Generate a mask for an input sequence of length `input_seq_len` and
+            charge `precursor_charge`. The mask is an array of booleans in which
+            True means the corresponding fragment is possible and False otherwise.
+
+            This is useful because a breakage point cannot be greater than the length
+            of the sequence - 1, and typically fragments are not charged greater than
+            their precursor was.
+        """
+        mask = np.array([
+            (frag.fragment_series_number < input_seq_len and frag.fragment_charge <= precursor_charge)
+            for frag in self.fragments])
+
+        return mask
 
 
 @dataclass
@@ -197,15 +213,15 @@ def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_cha
     if sequence[0] == '*':
         input_seq_len -= 1
 
+    # Get mask for possible fragments
+    mask = model_params.generate_mask(input_seq_len=input_seq_len, precursor_charge=precursor_charge)
+
     # Identify which intensity peaks are above the defined threshold
-    # and get the list of fragments that correspond to that.
-    frag_key = model_params.generate_fragment_list(input_seq_len=input_seq_len)
-    output_layer_truncated = output_layer[:len(frag_key)]
-
-    ### mask charges greater than precursor charge
-
-    peaks = output_layer_truncated > thresh
-    frag_list = zip(frag_key[peaks], output_layer_truncated[peaks])
+    # and get the list of fragments that correspond to that. Also
+    # mask the fragments that are not valid for the given length
+    # and precursor charge.
+    peaks = (mask) & (output_layer > thresh)
+    frag_list = zip(model_params.fragments[peaks], output_layer[peaks])
 
     # Calc precursor m/z
     precursor_mz = mass.fast_mass(sequence=sequence, charge=precursor_charge, aa_mass=aa_mass, ion_type='M')
@@ -246,7 +262,7 @@ if __name__ == "__main__":
     output_layer = np.random.random(392)
 
     # Convert to spectrum
-    spectrum = output_layer_to_spectrum(output_layer, model_params, "*SSS1TT221", 0, pY=0.97, iRT=1, ccs=0, thresh=0.9)
+    spectrum = output_layer_to_spectrum(output_layer, model_params, "*SSS1TT221", 1, pY=0.97, iRT=1, ccs=0, thresh=0.9)
 
 
     spectrum_df = spectrum.to_dataframe()
