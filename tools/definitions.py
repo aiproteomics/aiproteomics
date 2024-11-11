@@ -1,5 +1,3 @@
-import re
-
 from pyteomics import mass
 
 # Phospho diagnostic peak
@@ -45,6 +43,7 @@ def generate_aa_mass():
     aa_mass = {k: mass.calculate_mass(v) for k, v in aa_comp.items()}
 
     return aa_mass
+
 
 aa_mass = generate_aa_mass()
 
