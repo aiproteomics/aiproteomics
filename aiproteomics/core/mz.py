@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 from pyteomics import mass
 
 from aiproteomics.core.fragment import Fragment
@@ -75,4 +73,3 @@ def get_precursor_mz(seq, charge, aa_mass):
     """
 
     return mass.fast_mass(sequence=seq, charge=charge, aa_mass=aa_mass, ion_type='M')
-

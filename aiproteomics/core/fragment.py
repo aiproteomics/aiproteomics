@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import itertools as it
 
 @dataclass
 class Fragment:
