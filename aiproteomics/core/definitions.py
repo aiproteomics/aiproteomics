@@ -1,10 +1,12 @@
+from dataclasses import dataclass
+
 from pyteomics import mass
 
 # Phospho diagnostic peak
 MASS_pY = 216.043
 
 # Neutral losses
-mass_nveutral_loss = {
+mass_neutral_loss = {
     "H2O": mass.calculate_mass(formula='H2O'),
     "NH3": mass.calculate_mass(formula='NH3'),
     "H3PO4": mass.calculate_mass(formula='H3PO4')
@@ -52,6 +54,15 @@ def generate_aa_mass():
 
 
 aa_mass = generate_aa_mass()
+
+@dataclass
+class PeptideSequence:
+    """
+        Class to hold a string representation of a
+    """
+
+    seq: str
+
 
 
 def get_ion_mz(seq, ion_type, ion_break, ion_charge, aa_mass):

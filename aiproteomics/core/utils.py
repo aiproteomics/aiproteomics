@@ -1,5 +1,5 @@
 import re
-from definitions import aa_mod_map
+from aiproteomics.core.definitions import aa_mod_map
 
 
 def generate_unmodified_peptide_sequence(modified_seq):

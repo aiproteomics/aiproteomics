@@ -4,8 +4,8 @@ import argparse
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 
-from definitions import MASS_pY, get_ion_mz, get_precursor_mz, aa_mass, mass_neutral_loss
-from utils import generate_unmodified_peptide_sequence, unimod_to_single_char_sequence
+from aiproteomics.core.definitions import MASS_pY, get_ion_mz, get_precursor_mz, aa_mass, mass_neutral_loss
+from aiproteomics.core.utils import generate_unmodified_peptide_sequence, unimod_to_single_char_sequence
 
 # The ions supported by this conversion tool
 ALLOWED_IONS = ['y', 'b', 'a']
