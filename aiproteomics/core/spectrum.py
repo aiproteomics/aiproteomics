@@ -5,10 +5,10 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from fragment import Fragment
-from definitions import ANNOTATION_pY
-from mz import MASS_pY, get_ion_mz, get_precursor_mz, aa_mass, mass_neutral_loss
-from utils import generate_unmodified_peptide_sequence, unimod_to_single_char_sequence
+from aiproteomics.core.fragment import Fragment
+from aiproteomics.core.definitions import ANNOTATION_pY
+from aiproteomics.core.mz import MASS_pY, get_ion_mz, get_precursor_mz, aa_mass, mass_neutral_loss
+from aiproteomics.core.utils import generate_unmodified_peptide_sequence, unimod_to_single_char_sequence
 
 
 @dataclass
