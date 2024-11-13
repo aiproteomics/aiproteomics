@@ -4,7 +4,7 @@ from pyteomics import mass
 MASS_pY = 216.043
 
 # Neutral losses
-mass_neutral_loss = {
+mass_nveutral_loss = {
     "H2O": mass.calculate_mass(formula='H2O'),
     "NH3": mass.calculate_mass(formula='NH3'),
     "H3PO4": mass.calculate_mass(formula='H3PO4')
@@ -22,6 +22,12 @@ aa_mod_map = {
 }
 
 def generate_aa_mass():
+    """
+        Generates the dict of masses for supported amino acids and modifications.
+
+        Modification compositions are obtained from the Unimod database.
+    """
+
     db = mass.Unimod()
     aa_comp = mass.std_aa_comp.copy()
 
@@ -49,6 +55,13 @@ aa_mass = generate_aa_mass()
 
 
 def get_ion_mz(seq, ion_type, ion_break, ion_charge, aa_mass):
+    """
+        Calculate the m/z of an ion of type `ion_type` and charge `ion_charge`
+        breaking at position `ion_break` in the given sequence `seq`.
+        Note that a,b,c ions break counting from the N-terminus (left) side of
+        the sequence and x,y,z ions from the C-terminus (right) side.
+
+    """
 
     if ion_type[0] in 'abc':
         # If the first entry is acetylation, skip it as not real amino acid (check this!)
