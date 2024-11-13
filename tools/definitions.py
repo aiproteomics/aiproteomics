@@ -60,3 +60,12 @@ def get_ion_mz(seq, ion_type, ion_break, ion_charge, aa_mass):
         frag_seq = seq[-ion_break:]
 
     return mass.fast_mass(frag_seq, ion_type=ion_type, charge=ion_charge, aa_mass=aa_mass)
+
+
+def get_precursor_mz(seq, charge, aa_mass):
+    """
+        Calculates the precursor m/z for the given sequence
+    """
+
+    return mass.fast_mass(sequence=seq, charge=charge, aa_mass=aa_mass, ion_type='M')
+

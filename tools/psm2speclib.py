@@ -4,9 +4,7 @@ import argparse
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 
-from pyteomics import mass
-
-from definitions import MASS_pY, get_ion_mz, aa_mass, mass_neutral_loss
+from definitions import MASS_pY, get_ion_mz, get_precursor_mz, aa_mass, mass_neutral_loss
 from utils import generate_unmodified_peptide_sequence, unimod_to_single_char_sequence
 
 # The ions supported by this conversion tool
@@ -169,7 +167,8 @@ def map_psm_row(row, ignore_unsupported=True):
     if seq is None:
         return None
 
-    precursor_mz = mass.fast_mass(sequence=seq, charge=precursor_charge, aa_mass=aa_mass, ion_type='M')
+
+    precursor_mz = get_precursor_mz(seq, precursor_charge, aa_mass=aa_mass)
     unmodified_peptide_sequence = generate_unmodified_peptide_sequence(modified_peptide_sequence)
 
 
