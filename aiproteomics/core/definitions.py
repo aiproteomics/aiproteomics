@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 # Phospho diagnostic peak
 ANNOTATION_pY = "pY"
 
