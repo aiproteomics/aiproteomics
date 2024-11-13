@@ -4,7 +4,6 @@ import argparse
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 
-from aiproteomics.core.fragment import Fragment
 from aiproteomics.core.definitions import ANNOTATION_pY
 from aiproteomics.core.mz import MASS_pY, get_ion_mz, get_precursor_mz, aa_mass, mass_neutral_loss
 from aiproteomics.core.utils import generate_unmodified_peptide_sequence, unimod_to_single_char_sequence, parse_ion_annotation
