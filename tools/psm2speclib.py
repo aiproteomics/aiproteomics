@@ -4,7 +4,7 @@ import argparse
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 
-from aiproteomics.core.definitions import MASS_pY, get_ion_mz, get_precursor_mz, aa_mass, mass_neutral_loss
+from aiproteomics.core.definitions import MASS_pY, ANNOTATION_pY, get_ion_mz, get_precursor_mz, aa_mass, mass_neutral_loss
 from aiproteomics.core.utils import generate_unmodified_peptide_sequence, unimod_to_single_char_sequence
 
 # The ions supported by this conversion tool
@@ -52,8 +52,8 @@ def parse_ion(ion):
     if 'nan' in ion:
         return None
 
-    if ion == 'pY':
-        return ('pY', 0, 1, None)
+    if ion == ANNOTATION_pY:
+        return (ANNOTATION_pY, 0, 1, None)
 
     # Get single letter ion identifier e.g. 'y', 'b', 'a'
     ion_type = ion[0]
@@ -119,7 +119,7 @@ def parse_ions(str_matches, str_intensities, seq):
 
         ion_type, ion_break, ion_charge, neutral_loss = parsed_ion
 
-        if ion_type == 'pY':
+        if ion_type == ANNOTATION_pY:
             ion_mz = MASS_pY
         else:
             ion_mz = get_ion_mz(seq, ion_type, ion_break, ion_charge, aa_mass)

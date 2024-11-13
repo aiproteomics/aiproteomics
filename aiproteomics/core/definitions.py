@@ -4,6 +4,7 @@ from pyteomics import mass
 
 # Phospho diagnostic peak
 MASS_pY = 216.043
+ANNOTATION_pY = "pY"
 
 # Neutral losses
 mass_neutral_loss = {

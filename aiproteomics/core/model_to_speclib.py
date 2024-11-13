@@ -6,9 +6,7 @@ import numpy as np
 import pandas as pd
 from pyteomics import mass
 
-
-MASS_pY = 216.043 # phosphorylation diagnostic peak
-ANNOTATION_pY = "pY"
+from definitions import MASS_pY, ANNOTATION_pY
 
 @dataclass
 class Fragment:
