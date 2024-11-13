@@ -89,5 +89,3 @@ def parse_ion_annotation(ion):
         raise ValueError(f'Exception when converting ion breakage str {ion_break_str}: {ve}') from ve
 
     return Fragment(ion_type, ion_charge, ion_break, neutral_loss)
-
-

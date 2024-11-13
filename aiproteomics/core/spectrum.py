@@ -170,5 +170,3 @@ def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_cha
                 iRT=iRT,
                 ccs=ccs,
                 products=products)
-
-
