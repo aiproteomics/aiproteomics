@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from pyteomics import mass
 
-from fragment import Fragment
+from aiproteomics.core.fragment import Fragment
 
 # Phospho diagnostic peak
 MASS_pY = 216.043

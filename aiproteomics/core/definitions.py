@@ -1,3 +1,6 @@
+# Recognized ion types (not including pY)
+ALLOWED_IONS = ['x', 'y', 'z', 'a', 'b', 'c']
+
 # Phospho diagnostic peak
 ANNOTATION_pY = "pY"
 
