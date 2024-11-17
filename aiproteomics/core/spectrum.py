@@ -15,13 +15,16 @@ class ModelParams:
     """
         Describes a particular MSMS fragmentation AI model with fixed input sequence
         length `seq_len`, handling ions of types `ions`, precursor charges of up to
-        (and including) `num_charges`, and neutral losses in the list `neutral_losses`.
+        `max_charge`, and neutral losses in the list `neutral_losses`.
     """
 
     seq_len: int
     ions: list
-    num_charges: int
+    max_charge: int
     neutral_losses: list
+    iRT_rescaling_var: float
+    iRT_rescaling_mean: float
+
 
     def __post_init__(self):
         """
@@ -40,7 +43,7 @@ class ModelParams:
                             self.neutral_losses,
                             range(1, self.seq_len),
                             self.ions,
-                            range(1, self.num_charges + 1))
+                            range(1, self.max_charge + 1))
 
         frag_list = np.array([Fragment(ion, charge, cleavage, loss) for loss, cleavage, ion, charge in frag_iter])
 
@@ -62,6 +65,15 @@ class ModelParams:
             for frag in self.fragments])
 
         return mask
+
+
+    def scale_output_iRT(model_output):
+        """
+            For a given retention time value predicted by this model (`model_output`),
+            this function rescales it using the iRT variance and mean parameters
+            to get the true iRT prediction
+        """
+        return model_output * np.sqrt(iRT_rescaling_var) + iRT_rescaling_mean
 
     def to_dict(self):
         """
