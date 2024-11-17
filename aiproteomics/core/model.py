@@ -30,7 +30,7 @@ class AIProteomicsModel:
 
         # Create timestamp for time this was written to disk
         tz = datetime.timezone.utc
-        fmt = "%Y%m%dT%H%M%S"
+        fmt = "%Y-%m-%dT%H%M%S"
         timestamp = datetime.datetime.now(tz=tz).strftime(fmt)
 
         params_dict = {
