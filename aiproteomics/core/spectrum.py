@@ -11,6 +11,13 @@ from aiproteomics.core.mz import MASS_pY, get_ion_mz, get_precursor_mz, aa_mass
 
 @dataclass
 class ModelParams:
+
+    """
+        Describes a particular MSMS fragmentation AI model with fixed input sequence
+        length `seq_len`, handling ions of types `ions`, precursor charges of up to
+        (and including) `num_charges`, and neutral losses in the list `neutral_losses`.
+    """
+
     seq_len: int
     ions: list
     num_charges: int
@@ -59,6 +66,12 @@ class ModelParams:
 
 @dataclass
 class SpectrumEntry:
+    """
+        One fragment in a `Spectrum` object. Contains the `Fragment` description (that
+        includes annotation, break point, ion type etc.), the intensity of the peak
+        and the corresponding m/z value.
+    """
+
     frag: Fragment
     intensity: float
     mz: float
@@ -66,6 +79,11 @@ class SpectrumEntry:
 
 @dataclass
 class Spectrum:
+    """
+        An object to describe the MS spectrum for a given peptide. This means the list of
+        product fragments (e.g. "y3", "b2" etc), their m/z and their intensity.
+    """
+
     precursor_mz: float
     precursor_sequence: str
     precursor_charge: int
@@ -78,6 +96,11 @@ class Spectrum:
     gene_name: Optional[str] = None
 
     def to_dataframe(self):
+        """
+            Returns a representation of this spectrum as a pandas `DataFrame` object.
+            The dataframe can then be converted to either a `tsv` (using `.to_csv(sep='\t')`
+            or to `parquet` (using `.to_parquet()`).
+        """
 
         num_products = len(self.products)
         if self.pY:
@@ -128,6 +151,21 @@ class Spectrum:
 
 
 def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_charge, pY=None, iRT=None, ccs=None, thresh=0.1):
+    """
+        Calculates the spectrum (product fragments, with annotations and intensities) corresponding to the
+        given model parameters and output layer(s).
+
+        Inputs:
+            `model_params`: parameters of the AI msms prediction model
+            `output_layer` of the AI msms model (assumed to be something like a numpy Array)
+            `precursor_charge`, the charge of the peptide prior to fragmentation
+            `pY`, if available (otherwise `None`). The predicted diagnostic peak (for phospho)
+            `iRT`, if available (otherwise `None`). The predicted normalized retention time of the precursor peptide.
+            `ccs`, if available (otherwise `None`). The predicted ion mobility of the precursor peptide.
+        Outputs:
+            A `Spectrum` object containing the list of predicted product fragments and their intensities
+
+    """
 
     # Work out length of input sequence (in amino acids) so that the
     # relevant portion of the output layer can be considered
