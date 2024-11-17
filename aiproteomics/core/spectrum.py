@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 import itertools as it
 from typing import Optional
 
@@ -62,6 +62,12 @@ class ModelParams:
             for frag in self.fragments])
 
         return mask
+
+    def to_dict(self):
+        """
+            Return model parameters as a `dict`
+        """
+        return asdict(self)
 
 
 @dataclass
