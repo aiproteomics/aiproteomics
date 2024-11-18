@@ -102,9 +102,8 @@ class ModelParamsRT:
         and `iRT_rescaling_var`
     """
 
-    seq_len: int
-    iRT_rescaling_mean: Optional[float] = None
-    iRT_rescaling_var: Optional[float] = None
+    iRT_rescaling_mean
+    iRT_rescaling_var
 
     def get_model_type(self):
         return ModelType.RT
@@ -133,9 +132,6 @@ class ModelParamsCCS:
         Describes a particular ion mobility AI model with fixed input sequence
         length `seq_len`
     """
-
-    seq_len: int
-
 
     def get_model_type(self):
         return ModelType.CCS
