@@ -1,11 +1,21 @@
+import os
+import json
+import datetime
+
 from enum import Enum
 from dataclasses import dataclass, asdict
 import itertools as it
 from typing import Optional
+from pathlib import Path
 
 import numpy as np
 
+import tensorflow as tf
+import tf2onnx
+
+import aiproteomics
 from aiproteomics.core.fragment import Fragment
+from aiproteomics.core.sequence import SequenceMapper
 
 class ModelType(Enum):
     MSMS = "msms"
@@ -148,10 +158,74 @@ class ModelParamsCCS:
 
 
 
+
+@dataclass
+class AIProteomicsModel:
+
+    seq_map: SequenceMapper
+    model_params: ModelParams
+    nn_model: tf.keras.Model
+
+
+    def process_inputs(self, sequence: np.array, charge: np.array):
+        pass
+
+
+    def process_outputs():
+        # return df of all generated spectra
+        pass
+
+    def to_dir(self, dirpath, overwrite=False, config_fname="config.json", nn_model_fname="nn.onnx"):
+
+        dirpath = Path(dirpath)
+        config_fname = Path(config_fname)
+        confpath = dirpath / config_fname
+        nnpath = dirpath / nn_model_fname
+
+        # Create timestamp for time this was written to disk
+        tz = datetime.timezone.utc
+        fmt = "%Y-%m-%dT%H%M%S"
+        timestamp = datetime.datetime.now(tz=tz).strftime(fmt)
+
+        params_dict = {
+                "aiproteomics_version": aiproteomics.__VERSION__,
+                "creation_time": timestamp,
+                "model_type": self.model_params.get_model_type().value,
+                "model_params": self.model_params.to_dict(),
+                "seq_map": self.seq_map.to_dict(),
+                "nn_model": nn_model_fname
+                }
+
+        # Create the output dir (if not existing)
+        if os.path.exists(dirpath):
+            if not overwrite:
+                raise ValueError(f"Directory {dirpath} already exists. If you want to overwrite it, use overwrite=True")
+        else:
+            os.makedirs(dirpath)
+
+        # Write params of this model to the config file
+        with open(confpath, "w") as conffile:
+            json.dump(params_dict, conffile, indent=4)
+
+        # Write NN model to the model directory too
+        tf2onnx.convert.from_keras(self.nn_model, output_path=nnpath)
+
+
+    def from_dir(self):
+        # Previously generate model as ONNX? Then can easily load from or save to? Then dump in dir along with rest?
+        pass
+
+
+
+
+
+
+
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+# Return "creation meta data too?"
 def generate_msms_transformer(
     num_layers=6,
     num_heads=8,
