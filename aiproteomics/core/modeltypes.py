@@ -102,8 +102,9 @@ class ModelParamsRT:
         and `iRT_rescaling_var`
     """
 
-    iRT_rescaling_mean
-    iRT_rescaling_var
+    seq_len: int
+    iRT_rescaling_mean: float
+    iRT_rescaling_var: float
 
     def get_model_type(self):
         return ModelType.RT
@@ -133,6 +134,8 @@ class ModelParamsCCS:
         length `seq_len`
     """
 
+    seq_len: int
+
     def get_model_type(self):
         return ModelType.CCS
 
@@ -142,3 +145,48 @@ class ModelParamsCCS:
             Return model parameters as a `dict`
         """
         return asdict(self)
+
+
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+def generate_msms_transformer(
+    num_layers=6,
+    num_heads=8,
+    d_ff=2048,
+    dropout_rate=0.1,
+    seq_map=None,
+    params=None):
+
+
+    # Input layers
+    peptide = keras.Input(
+        name="peptide", dtype="float32", sparse=False, batch_input_shape=(None, 30)
+    )
+    charge = keras.Input(
+        name="charge", dtype="float32", sparse=False, batch_input_shape=(None, 6)
+    )
+
+    add_meta = layers.Concatenate()([peptide, charge])
+
+    activation = layers.LeakyReLU(name="activation", alpha=0.30000001192092896, trainable=True)(
+        add_meta
+    )
+
+    output_layer = layers.Flatten(name="out", data_format="channels_last", trainable=True)(
+        activation
+    )
+
+    # Compile model
+    # if this doesn't work, explicitly import masked_spectral_distance from losses
+    model = keras.Model(
+        inputs=[peptide, charge], outputs=output_layer
+    )
+    model.compile(loss="meansquarederror", optimizer="adam", metrics=["accuracy"])
+
+    return model
+
+
+
