@@ -1,11 +1,33 @@
+from enum import Enum
 from dataclasses import dataclass, asdict
 import itertools as it
 from typing import Optional
 
+import numpy as np
+
 from aiproteomics.core.fragment import Fragment
 
+class ModelType(Enum):
+    MSMS = "msms"
+    RT = "rt"
+    CCS = "ccs"
+
+
+class ModelParams:
+
+    def get_model_type(self):
+        raise NotImplementedError
+
+    def to_dict(self):
+        raise NotImplementedError
+
+    def from_dict(self, d):
+        raise NotImplementedError
+
+
+
 @dataclass
-class ModelParamsFrag:
+class ModelParamsMSMS(ModelParams):
 
     """
         Describes a particular MSMS fragmentation AI model with fixed input sequence
@@ -17,9 +39,6 @@ class ModelParamsFrag:
     ions: list
     max_charge: int
     neutral_losses: list
-    iRT_rescaling_var: Optional[float] = None
-    iRT_rescaling_mean: Optional[float] = None
-
 
     def __post_init__(self):
         """
@@ -45,6 +64,10 @@ class ModelParamsFrag:
         return frag_list
 
 
+    def get_model_type(self):
+        return ModelType.MSMS
+
+
     def generate_mask(self, input_seq_len=None, precursor_charge=None):
         """
             Generate a mask for an input sequence of length `input_seq_len` and
@@ -61,14 +84,6 @@ class ModelParamsFrag:
 
         return mask
 
-
-    def scale_output_iRT(model_output):
-        """
-            For a given retention time value predicted by this model (`model_output`),
-            this function rescales it using the iRT variance and mean parameters
-            to get the true iRT prediction
-        """
-        return model_output * np.sqrt(iRT_rescaling_var) + iRT_rescaling_mean
 
     def to_dict(self):
         """
@@ -90,6 +105,9 @@ class ModelParamsRT:
     seq_len: int
     iRT_rescaling_mean: Optional[float] = None
     iRT_rescaling_var: Optional[float] = None
+
+    def get_model_type(self):
+        return ModelType.RT
 
 
     def scale_output_iRT(model_output):
@@ -117,6 +135,11 @@ class ModelParamsCCS:
     """
 
     seq_len: int
+
+
+    def get_model_type(self):
+        return ModelType.CCS
+
 
     def to_dict(self):
         """

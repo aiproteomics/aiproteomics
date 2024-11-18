@@ -6,12 +6,14 @@ from pathlib import Path
 from dataclasses import dataclass
 
 import aiproteomics
-from aiproteomics.core.spectrum import ModelParams
+from aiproteomics.core.sequence import SequenceMapper, PHOSPHO_MAPPING, PROSIT_MAPPING
+from aiproteomics.core.modeltypes import ModelParams, ModelParamsMSMS
 
 
 @dataclass
 class AIProteomicsModel:
 
+    seq_map: SequenceMapper
     model_params: ModelParams
 
 #    def process_inputs(self, sequence: List[str], charge: List[int]):
@@ -36,7 +38,9 @@ class AIProteomicsModel:
         params_dict = {
                 "aiproteomics_version": aiproteomics.__VERSION__,
                 "creation_time": timestamp,
+                "model_type": self.model_params.get_model_type().value,
                 "model_params": self.model_params.to_dict(),
+                "seq_map": self.seq_map.to_dict()
                 }
 
         # Create the output dir (if not existing)
@@ -94,13 +98,15 @@ class AIProteomicsModel:
 if __name__ == "__main__":
 
 
-    params = ModelParams(seq_len=50, ions=['y','b'], num_charges=2, neutral_losses=['', 'H3PO4'])
+    seqmap = SequenceMapper(min_seq_len=7, max_seq_len=50, mapping=PHOSPHO_MAPPING)
 
-    fragmodel = AIProteomicsModel(model_params=params)
+    params = ModelParamsMSMS(seq_len=50, ions=['y','b'], max_charge=2, neutral_losses=['', 'H3PO4'])
 
-    print(fragmodel)
+    msmsmodel = AIProteomicsModel(seq_map=seqmap, model_params=params)
 
-    fragmodel.to_dir("testmodel/", overwrite=True)
+    print(msmsmodel)
+
+    msmsmodel.to_dir("testmodel/", overwrite=True)
 
 #    fragmodel = AIProteomicsModel(model_params=params, input_mapper=SequenceMapper, output_mapper=FixedOutputMapper)
 #
