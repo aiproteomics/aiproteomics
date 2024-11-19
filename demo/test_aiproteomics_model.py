@@ -15,7 +15,7 @@ if __name__ == "__main__":
     params = ModelParamsMSMS(seq_len=50, ions=['y','b'], max_charge=2, neutral_losses=['', 'H3PO4'])
 
     # Make a compatible NN model
-    nn_model = generate_msms_transformer(
+    nn_model, creation_meta = generate_msms_transformer(
         seq_map=seqmap,
         params=params,
         num_layers=6,
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     )
 
     # Build the model
-    msmsmodel = AIProteomicsModel(seq_map=seqmap, model_params=params, nn_model=nn_model)
+    msmsmodel = AIProteomicsModel(seq_map=seqmap, model_params=params, nn_model=nn_model, nn_model_creation_metadata=creation_meta)
 
     # Save the model
     msmsmodel.to_dir("testmodelfrag/", overwrite=True)
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # Try making a prosit-style retention time model
     seqmap = SequenceMapper(min_seq_len=7, max_seq_len=30, mapping=PROSIT_MAPPING)
     params = ModelParamsRT(seq_len=30, iRT_rescaling_mean=101.11514, iRT_rescaling_var=46.5882)
-    rtmodel = AIProteomicsModel(seq_map=seqmap, model_params=params, nn_model=nn_model)
+    rtmodel = AIProteomicsModel(seq_map=seqmap, model_params=params, nn_model=nn_model, nn_model_creation_metadata=creation_meta)
     rtmodel.to_dir("testmodelrt/", overwrite=True)
 
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # Try making a phospho-style CCS time model
     seqmap = SequenceMapper(min_seq_len=7, max_seq_len=50, mapping=PHOSPHO_MAPPING)
     params = ModelParamsCCS(seq_len=30)
-    ccsmodel = AIProteomicsModel(seq_map=seqmap, model_params=params, nn_model=nn_model)
+    ccsmodel = AIProteomicsModel(seq_map=seqmap, model_params=params, nn_model=nn_model, nn_model_creation_metadata=creation_meta)
     ccsmodel.to_dir("testmodelccs/", overwrite=True)
 
 

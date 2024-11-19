@@ -165,7 +165,7 @@ class AIProteomicsModel:
     seq_map: SequenceMapper
     model_params: ModelParams
     nn_model: tf.keras.Model
-
+    nn_model_creation_metadata: dict
 
     def process_inputs(self, sequence: np.array, charge: np.array):
         pass
@@ -193,7 +193,8 @@ class AIProteomicsModel:
                 "model_type": self.model_params.get_model_type().value,
                 "model_params": self.model_params.to_dict(),
                 "seq_map": self.seq_map.to_dict(),
-                "nn_model": nn_model_fname
+                "nn_model": nn_model_fname,
+                "nn_model_creation_metadata": self.nn_model_creation_metadata
                 }
 
         # Create the output dir (if not existing)
