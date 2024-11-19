@@ -170,8 +170,8 @@ class AIProteomicsModel:
         pass
 
 
-    def process_outputs():
-        # return df of all generated spectra
+    def process_outputs(self):
+        # return df of all generated spectra, or iRT values, or ccs values
         pass
 
     def to_dir(self, dirpath, overwrite=False, config_fname="config.json", nn_model_fname="nn.onnx"):
@@ -204,7 +204,7 @@ class AIProteomicsModel:
             os.makedirs(dirpath)
 
         # Write params of this model to the config file
-        with open(confpath, "w") as conffile:
+        with open(confpath, "w", encoding="utf-8") as conffile:
             json.dump(params_dict, conffile, indent=4)
 
         # Write NN model to the model directory too
