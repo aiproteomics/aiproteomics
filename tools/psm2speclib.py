@@ -6,7 +6,8 @@ from dask.diagnostics import ProgressBar
 
 from aiproteomics.core.definitions import ANNOTATION_pY
 from aiproteomics.core.mz import MASS_pY, get_ion_mz, get_precursor_mz, aa_mass, mass_neutral_loss
-from aiproteomics.core.utils import generate_unmodified_peptide_sequence, unimod_to_single_char_sequence, parse_ion_annotation
+from aiproteomics.core.sequence import SequenceMapper, PHOSPHO_MAPPING
+from aiproteomics.core.utils import parse_ion_annotation
 
 # Specify types for each of the output columns of the speclib file.
 out_dtypes = {
@@ -89,7 +90,7 @@ def parse_ions(str_matches, str_intensities, seq):
             "FragmentLossType": losses}
 
 
-def map_psm_row(row, ignore_unsupported=True):
+def map_psm_row(row, sequence_mapper=None, ignore_unsupported=True):
     """
     Parses all ions in the `Matches` column of the input row, and calculates the m/z
     for each corresponding product. Returns a dict containing all the columns specified
@@ -106,14 +107,14 @@ def map_psm_row(row, ignore_unsupported=True):
 
     # Map peptide sequence with unimod modifications so that there is
     # only one character per amino acid (as defined in aa_mod_map)
-    seq = unimod_to_single_char_sequence(modified_peptide_sequence, ignore_unsupported=ignore_unsupported)
+    seq = sequence_mapper.unimod_to_single_char_sequence(modified_peptide_sequence, ignore_unsupported=ignore_unsupported)
 
     if seq is None:
         return None
 
 
     precursor_mz = get_precursor_mz(seq, precursor_charge, aa_mass=aa_mass)
-    unmodified_peptide_sequence = generate_unmodified_peptide_sequence(modified_peptide_sequence)
+    unmodified_peptide_sequence = sequence_mapper.generate_unmodified_peptide_sequence(modified_peptide_sequence)
 
 
     # First set the properties that come from the precursor
@@ -157,11 +158,14 @@ if __name__ == "__main__":
         psm_df = dd.read_parquet(args.inpath)
     psm_df = psm_df.repartition(npartitions=args.num_partitions)
 
+    # Build a sequence mapper with the desired mapping characteristics
+    seqmap = SequenceMapper(min_seq_len=7, max_seq_len=50, mapping=PHOSPHO_MAPPING)
+
     # Make lists of fragment info for each row, then explode the lists
     # so we get 1 row per fragment
     speclib_df = psm_df.map_partitions(
             lambda part : part.apply(
-            lambda row: map_psm_row(row, ignore_unsupported=args.ignore_unsupported), axis=1, result_type='expand'
+            lambda row: map_psm_row(row, sequence_mapper=seqmap, ignore_unsupported=args.ignore_unsupported), axis=1, result_type='expand'
             ).explode(column=explode_cols), meta=out_dtypes)
 
     # Drop empty rows (corresponds to input sequences that had no matches - e.g. set to nan)
