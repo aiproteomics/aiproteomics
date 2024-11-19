@@ -1,19 +1,26 @@
 import numpy as np
-from aiproteomics.core.spectrum import ModelParams, output_layer_to_spectrum
+from aiproteomics.core.spectrum import output_layer_to_spectrum
+from aiproteomics.core.modeltypes import ModelParamsMSMS
 
 
-def test_model_params():
+def test_model_params_msms():
+    """
+    Check that the number of fragments generated is correct
+    """
 
-    model_params = ModelParams(seq_len=50, ions=['y','b'], num_charges=2, neutral_losses=['', 'H3PO4'])
-
-    # Check that the number of fragments generated is correct
+    model_params = ModelParamsMSMS(seq_len=50, ions=['y','b'], max_charge=2, neutral_losses=['', 'H3PO4'])
     frag_list = model_params.generate_fragment_list()
     assert len(frag_list) == 392
+
+    # Prosit-style
+    model_params = ModelParamsMSMS(seq_len=30, ions=['y','b'], max_charge=3, neutral_losses=[''])
+    frag_list = model_params.generate_fragment_list()
+    assert len(frag_list) == 174
 
 
 def test_output_layer_to_spectrum():
 
-    model_params = ModelParams(seq_len=50, ions=['y','b'], num_charges=2, neutral_losses=['', 'H3PO4'])
+    model_params = ModelParamsMSMS(seq_len=50, ions=['y','b'], max_charge=2, neutral_losses=['', 'H3PO4'])
 
     frag_list = model_params.generate_fragment_list()
 
