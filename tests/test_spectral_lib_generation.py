@@ -33,6 +33,27 @@ def test_output_layer_to_spectrum():
     # Convert to pandas dataframe
     spectrum_df = spectrum.to_dataframe()
 
+    # Check that expected columns in output spectrum are present
+    expected_cols = [
+        "PrecursorMz",
+        "ProductMz",
+        "Annotation",
+        "ProteinId",
+        "GeneName",
+        "PeptideSequence",
+        "ModifiedPeptideSequence",
+        "PrecursorCharge",
+        "LibraryIntensity",
+        "NormalizedRetentionTime",
+        "PrecursorIonMobility",
+        "FragmentType",
+        "FragmentCharge",
+        "FragmentSeriesNumber",
+        "FragmentLossType"
+    ]
+    for col_name in expected_cols:
+        assert col_name in spectrum_df.columns
+
     # Output to csv and parquet
     spectrum_df.to_csv('test_spectrum.tsv', sep='\t')
     spectrum_df.to_parquet('test_spectrum.parquet')
