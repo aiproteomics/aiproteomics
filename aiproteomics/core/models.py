@@ -43,6 +43,3 @@ def generate_msms_transformer(
             }
 
     return model, model_creation_metadata
-
-
-

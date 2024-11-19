@@ -1,7 +1,5 @@
-from enum import Enum
 from dataclasses import dataclass, asdict
-import itertools as it
-from typing import Optional
+import re
 
 import numpy as np
 
@@ -122,13 +120,13 @@ class SequenceMapper:
         single_char_seq = self.unimod_to_single_char_sequence(seq)
 
         l = len(single_char_seq)
-        if l < min_seq_len or l > max_seq_len:
-            raise ValueError(f"Sequence {seq} does not fit in range defined by min_seq_len={min_seq_len} and max_seq_len={max_seq_len}")
+        if l < self.min_seq_len or l > self.max_seq_len:
+            raise ValueError(f"Sequence {seq} does not fit in range defined by min_seq_len={self.min_seq_len} and max_seq_len={self.max_seq_len}")
 
         return np.array([self.mapping.aa_int_map[letter] for letter in single_char_seq])
 
 
-    def generate_unmodified_peptide_sequence(modified_seq):
+    def generate_unmodified_peptide_sequence(self, modified_seq):
         """ For a given peptide sequence, `modified_seq`, containing modification
             notation in the form '(UniMod:X)', this function will return the
             sequence absent any modification text (by simply removing anything
@@ -137,7 +135,7 @@ class SequenceMapper:
         return re.sub(r"[\(].*?[\)]", "", modified_seq)
 
 
-    def unimod_to_single_char_sequence(seq, ignore_unsupported=False):
+    def unimod_to_single_char_sequence(self, seq, ignore_unsupported=False):
         """
             Takes a peptide sequence `seq` as input, encoded as a string with UniMod modifiers.
             For example, "_(UniMod:1)AAAAKPNNLS(UniMod:21)LVVHGPGDLR_".
@@ -157,7 +155,7 @@ class SequenceMapper:
         if '(' in seq:
             if ignore_unsupported:
                 return None
-            raise ValueError(f'Sequence {seq} contains unsupported amino acid modifications. List of supported mods: {aa_mod_map.keys()}')
+            raise ValueError(f'Sequence {seq} contains unsupported amino acid modifications. List of supported mods: {self.aa_mod_map.keys()}')
 
         return seq
 

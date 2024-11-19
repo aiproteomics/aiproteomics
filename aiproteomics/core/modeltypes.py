@@ -119,7 +119,7 @@ class ModelParamsRT:
         return ModelType.RT
 
 
-    def scale_output_iRT(model_output):
+    def scale_output_iRT(self, model_output):
         """
             For a given retention time value predicted by this model (`model_output`),
             this function rescales it using the iRT variance and mean parameters

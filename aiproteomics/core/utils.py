@@ -1,5 +1,4 @@
-import re
-from aiproteomics.core.definitions import aa_mod_map, ANNOTATION_pY, ALLOWED_IONS
+from aiproteomics.core.definitions import ANNOTATION_pY, ALLOWED_IONS
 from aiproteomics.core.fragment import Fragment
 
 
