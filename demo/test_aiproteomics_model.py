@@ -16,7 +16,6 @@ if __name__ == "__main__":
 
     # Make a compatible NN model
     nn_model, creation_meta = generate_msms_transformer(
-        seq_map=seqmap,
         params=params,
         num_layers=6,
         num_heads=8,

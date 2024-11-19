@@ -7,16 +7,13 @@ def generate_msms_transformer(
     num_heads=8,
     d_ff=2048,
     dropout_rate=0.1,
-    seq_map=None,
     params=None):
 
-
-
     peptide = keras.Input(
-        name="peptide", dtype="float32", sparse=False, batch_input_shape=(None, 30)
+        name="peptide", dtype="float32", sparse=False, batch_input_shape=(None, params.seq_len)
     )
     charge = keras.Input(
-        name="charge", dtype="float32", sparse=False, batch_input_shape=(None, 6)
+        name="charge", dtype="float32", sparse=False, batch_input_shape=(None, params.max_charge)
     )
 
     add_meta = keras.layers.Concatenate()([peptide, charge])
