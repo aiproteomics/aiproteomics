@@ -5,7 +5,6 @@ import datetime
 from enum import Enum
 from dataclasses import dataclass, asdict
 import itertools as it
-from typing import Optional
 from pathlib import Path
 
 import numpy as np
@@ -126,7 +125,7 @@ class ModelParamsRT:
             this function rescales it using the iRT variance and mean parameters
             to get the true iRT prediction
         """
-        return model_output * np.sqrt(iRT_rescaling_var) + iRT_rescaling_mean
+        return model_output * np.sqrt(self.iRT_rescaling_var) + self.iRT_rescaling_mean
 
 
     def to_dict(self):
