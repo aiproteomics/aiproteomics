@@ -1,6 +1,6 @@
-import aiproteomics
 from aiproteomics.core.sequence import SequenceMapper, PHOSPHO_MAPPING, PROSIT_MAPPING
-from aiproteomics.core.modeltypes import ModelParamsMSMS, ModelParamsRT, ModelParamsCCS, AIProteomicsModel, generate_msms_transformer
+from aiproteomics.core.modeltypes import ModelParamsMSMS, ModelParamsRT, ModelParamsCCS, AIProteomicsModel
+from aiproteomics.core.models import generate_msms_transformer
 
 
 if __name__ == "__main__":
@@ -38,6 +38,14 @@ if __name__ == "__main__":
     rtmodel = AIProteomicsModel(seq_map=seqmap, model_params=params, nn_model=nn_model)
     rtmodel.to_dir("testmodelrt/", overwrite=True)
 
+
+    # -----------
+
+    # Try making a phospho-style CCS time model
+    seqmap = SequenceMapper(min_seq_len=7, max_seq_len=50, mapping=PHOSPHO_MAPPING)
+    params = ModelParamsCCS(seq_len=30)
+    ccsmodel = AIProteomicsModel(seq_map=seqmap, model_params=params, nn_model=nn_model)
+    ccsmodel.to_dir("testmodelccs/", overwrite=True)
 
 
 
