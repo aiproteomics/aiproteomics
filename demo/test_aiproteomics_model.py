@@ -60,12 +60,6 @@ if __name__ == "__main__":
 
 
 
-#    fragmodel = AIProteomicsModel(model_params=params, input_mapper=SequenceMapper, output_mapper=FixedOutputMapper)
-#
-#    ###
-#
-#    fragmodel = AIProteomicsModel.from_dir('fragmodel1/')
-#
 #    input_seq_df = pd.DataFrame.from_csv('peptides_to_predict.tsv', sep='\t')
 #    speclib_df = fragmodel.predict_to_speclib(input_seq_df)
 #

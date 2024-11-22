@@ -10,7 +10,6 @@ from pathlib import Path
 import numpy as np
 
 import tensorflow as tf
-import tf2onnx
 
 import aiproteomics
 from aiproteomics.core.fragment import Fragment
@@ -28,9 +27,6 @@ class ModelParams:
         raise NotImplementedError
 
     def to_dict(self):
-        raise NotImplementedError
-
-    def from_dict(self, d):
         raise NotImplementedError
 
     @staticmethod
@@ -190,6 +186,16 @@ class ModelParamsCCS:
 @dataclass
 class AIProteomicsModel:
 
+    """
+        Holds the three important components of an AI model used for generating
+        MSMS spectra, retention times or ion mobility: the input sequence mapping (`seq_map`),
+        the info needed for output layer processing (`model_params`), and the neural network
+        model itself (`nn_model`).
+
+        Can be dumped to a directory using `to_dir()` and later reloaded using the `.from_dir()`
+        static method.
+    """
+
     seq_map: SequenceMapper
     model_params: ModelParams
     nn_model: tf.keras.Model
@@ -211,7 +217,6 @@ class AIProteomicsModel:
 
         dirpath = Path(dirpath)
         config_fname = Path(config_fname)
-        nn_model_fname = nn_model_fname
         confpath = dirpath / config_fname
         nnpath = dirpath / nn_model_fname
 
@@ -242,7 +247,6 @@ class AIProteomicsModel:
             json.dump(params_dict, conffile, indent=4)
 
         # Write NN model to the model directory too
-#        tf2onnx.convert.from_keras(self.nn_model, output_path=nnpath)
         self.nn_model.save(nnpath)
 
 
@@ -279,14 +283,8 @@ class AIProteomicsModel:
         nnpath = dirpath / params_dict["nn_model"]
         nn_model = tf.keras.models.load_model(nnpath)
 
-        #
-
-        print(nn_model)
-
-        print(model_params)
-        print(seq_map)
-
-        return params_dict
-
-
-
+        return AIProteomicsModel(seq_map=seq_map,
+                                 model_params=model_params,
+                                 nn_model=nn_model,
+                                 nn_model_creation_metadata=params_dict["nn_model_creation_metadata"]
+                                )

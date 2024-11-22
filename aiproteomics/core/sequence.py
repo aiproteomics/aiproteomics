@@ -173,5 +173,3 @@ class SequenceMapper:
                         aa_mod_map=d["mapping"]["aa_mod_map"]
                     )
                 )
-
-
