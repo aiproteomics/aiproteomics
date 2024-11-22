@@ -1,36 +1,59 @@
-import os.path
-import tensorflow as tf
-from aiproteomics.rt.models import build_rt_transformer_model
-from aiproteomics.frag.models.early_fusion_transformer import build_model_early_fusion_transformer
-from aiproteomics.e2e.speclibgen import csv_to_speclib
+import numpy as np
+from aiproteomics.core.spectrum import output_layer_to_spectrum
+from aiproteomics.core.modeltypes import ModelParamsMSMS
 
 
-def test_spectral_lib_generation(tmp_path):
-    # Build an iRT model
-    model_irt = build_rt_transformer_model(
-        num_layers=6,  # number of layers
-        d_model=512,
-        num_heads=8,  # Number of attention heads
-        d_ff=2048,  # Hidden layer size in feed forward network inside transformer
-        dropout_rate=0.1,  #
-        vocab_size=22,  # number of aminoacids
-        max_len=30,
-    )
+def test_model_params_msms():
+    """
+    Check that the number of fragments generated is correct
+    """
 
-    # Build a fragmentation model
-    model_frag = build_model_early_fusion_transformer()
+    model_params = ModelParamsMSMS(seq_len=50, ions=['y','b'], max_charge=2, neutral_losses=['', 'H3PO4'])
+    frag_list = model_params.generate_fragment_list()
+    assert len(frag_list) == 392
 
-    # Use the models to build a spectral library for a test csv of peptides
-    msp_loc = tmp_path / "test.msp"
-    csv_to_speclib(
-        "tests/assets/example.csv",
-        msp_loc,
-        model_frag=model_frag,
-        model_irt=model_irt,
-        batch_size_frag=1024,
-        batch_size_iRT=1024,
-        iRT_rescaling_mean=56.35363441,
-        iRT_rescaling_var=1883.0160689,
-    )
+    # Prosit-style
+    model_params = ModelParamsMSMS(seq_len=30, ions=['y','b'], max_charge=3, neutral_losses=[''])
+    frag_list = model_params.generate_fragment_list()
+    assert len(frag_list) == 174
 
-    assert os.path.isfile(msp_loc)
+
+def test_output_layer_to_spectrum():
+
+    model_params = ModelParamsMSMS(seq_len=50, ions=['y','b'], max_charge=2, neutral_losses=['', 'H3PO4'])
+
+    frag_list = model_params.generate_fragment_list()
+
+    # Create random output layer
+    output_layer = np.random.random(392)
+
+    # Convert to spectrum
+    spectrum = output_layer_to_spectrum(output_layer, model_params, "*SSS1TT221", 1, pY=0.97, iRT=1, ccs=0, thresh=0.9)
+
+    # Convert to pandas dataframe
+    spectrum_df = spectrum.to_dataframe()
+
+    # Check that expected columns in output spectrum are present
+    expected_cols = [
+        "PrecursorMz",
+        "ProductMz",
+        "Annotation",
+        "ProteinId",
+        "GeneName",
+        "PeptideSequence",
+        "ModifiedPeptideSequence",
+        "PrecursorCharge",
+        "LibraryIntensity",
+        "NormalizedRetentionTime",
+        "PrecursorIonMobility",
+        "FragmentType",
+        "FragmentCharge",
+        "FragmentSeriesNumber",
+        "FragmentLossType"
+    ]
+    for col_name in expected_cols:
+        assert col_name in spectrum_df.columns
+
+    # Output to csv and parquet
+    spectrum_df.to_csv('test_spectrum.tsv', sep='\t')
+    spectrum_df.to_parquet('test_spectrum.parquet')

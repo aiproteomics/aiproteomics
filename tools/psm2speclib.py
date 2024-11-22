@@ -4,13 +4,10 @@ import argparse
 import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 
-from pyteomics import mass
-
-from definitions import MASS_pY, get_ion_mz, aa_mass, mass_neutral_loss
-from utils import generate_unmodified_peptide_sequence, unimod_to_single_char_sequence
-
-# The ions supported by this conversion tool
-ALLOWED_IONS = ['y', 'b', 'a']
+from aiproteomics.core.definitions import ANNOTATION_pY
+from aiproteomics.core.mz import MASS_pY, get_ion_mz, get_precursor_mz, aa_mass, mass_neutral_loss
+from aiproteomics.core.sequence import SequenceMapper, PHOSPHO_MAPPING
+from aiproteomics.core.utils import parse_ion_annotation
 
 # Specify types for each of the output columns of the speclib file.
 out_dtypes = {
@@ -41,58 +38,6 @@ explode_cols = [
 ]
 
 
-def parse_ion(ion):
-    """
-        For a given ion annotation, `ion` (e.g. "y3(2+)-H2O") this function
-        will parse the constituent information, returning a tuple of:
-        `ion_type` (e.g. 'y')
-        `ion_break` (e.g. 3, the point in the sequence where breakage occured)
-        `ion_charge` (e.g. 12)
-        `neutral_loss` (e.g. "H2O". If no loss, this is an empty string)
-    """
-
-    if 'nan' in ion:
-        return None
-
-    if ion == 'pY':
-        return ('pY', 0, 1, None)
-
-    # Get single letter ion identifier e.g. 'y', 'b', 'a'
-    ion_type = ion[0]
-    if ion_type not in ALLOWED_IONS:
-        raise ValueError(f'Ion type {ion_type} not in expected ion types: {ALLOWED_IONS}')
-
-    # Attempt to split into ion and neutral loss
-    ion_split = ion[1:].split('-')
-    ion_part = ion_split[0]
-    neutral_loss = ""
-
-    # If neutral loss
-    if len(ion_split) == 2:
-        ion_part = ion_split[0]
-        neutral_loss = ion_split[1]
-
-    # Determine ion charge
-    ion_part_split = ion_part.split('(')
-    ion_charge = 1
-    if len(ion_part_split) == 2:
-        ion_charge = int(ion_part_split[1].split('+')[0])
-
-    # Get ion breakage position
-    ion_break_str = ion_part_split[0]
-    if ion_break_str[-1] == '*':
-        # Check if asterisk after breakage, corresponding to phospho loss
-        ion_break_str = ion_break_str[:-1]
-        neutral_loss = "H3PO4"
-
-    try:
-        ion_break = int(ion_break_str)
-    except ValueError as ve:
-        raise ValueError(f'Exception when converting ion breakage str {ion_break_str}: {ve}') from ve
-
-    return (ion_type, ion_break, ion_charge, neutral_loss)
-
-
 def parse_ions(str_matches, str_intensities, seq):
     """
         Parse each ion in the semi-colon separated list of matches.
@@ -114,28 +59,26 @@ def parse_ions(str_matches, str_intensities, seq):
 
     for annotation, intensity in zip(str_matches.strip().split(';'), str_intensities.strip().split(';')):
 
-        parsed_ion = parse_ion(annotation)
+        frag = parse_ion_annotation(annotation)
 
-        if parsed_ion is None:
+        if frag is None:
             continue
 
-        ion_type, ion_break, ion_charge, neutral_loss = parsed_ion
-
-        if ion_type == 'pY':
+        if frag.fragment_type == ANNOTATION_pY:
             ion_mz = MASS_pY
         else:
-            ion_mz = get_ion_mz(seq, ion_type, ion_break, ion_charge, aa_mass)
+            ion_mz = get_ion_mz(seq, frag, aa_mass)
 
-        if neutral_loss:
-            ion_mz -= mass_neutral_loss[neutral_loss]
+        if frag.fragment_loss_type:
+            ion_mz -= mass_neutral_loss[frag.fragment_loss_type]
 
         annotations.append(annotation)
         intensities.append(float(intensity))
         ion_mzs.append(ion_mz)
-        ion_types.append(ion_type)
-        ion_breaks.append(ion_break)
-        ion_charges.append(ion_charge)
-        losses.append(neutral_loss)
+        ion_types.append(frag.fragment_type)
+        ion_breaks.append(frag.fragment_series_number)
+        ion_charges.append(frag.fragment_charge)
+        losses.append(frag.fragment_loss_type)
 
 
     return {"Annotation": annotations,
@@ -147,7 +90,7 @@ def parse_ions(str_matches, str_intensities, seq):
             "FragmentLossType": losses}
 
 
-def map_psm_row(row, ignore_unsupported=True):
+def map_psm_row(row, sequence_mapper=None, ignore_unsupported=True):
     """
     Parses all ions in the `Matches` column of the input row, and calculates the m/z
     for each corresponding product. Returns a dict containing all the columns specified
@@ -164,13 +107,14 @@ def map_psm_row(row, ignore_unsupported=True):
 
     # Map peptide sequence with unimod modifications so that there is
     # only one character per amino acid (as defined in aa_mod_map)
-    seq = unimod_to_single_char_sequence(modified_peptide_sequence, ignore_unsupported=ignore_unsupported)
+    seq = sequence_mapper.unimod_to_single_char_sequence(modified_peptide_sequence, ignore_unsupported=ignore_unsupported)
 
     if seq is None:
         return None
 
-    precursor_mz = mass.fast_mass(sequence=seq, charge=precursor_charge, aa_mass=aa_mass, ion_type='M')
-    unmodified_peptide_sequence = generate_unmodified_peptide_sequence(modified_peptide_sequence)
+
+    precursor_mz = get_precursor_mz(seq, precursor_charge, aa_mass=aa_mass)
+    unmodified_peptide_sequence = sequence_mapper.generate_unmodified_peptide_sequence(modified_peptide_sequence)
 
 
     # First set the properties that come from the precursor
@@ -214,11 +158,14 @@ if __name__ == "__main__":
         psm_df = dd.read_parquet(args.inpath)
     psm_df = psm_df.repartition(npartitions=args.num_partitions)
 
+    # Build a sequence mapper with the desired mapping characteristics
+    seqmap = SequenceMapper(min_seq_len=7, max_seq_len=50, mapping=PHOSPHO_MAPPING)
+
     # Make lists of fragment info for each row, then explode the lists
     # so we get 1 row per fragment
     speclib_df = psm_df.map_partitions(
             lambda part : part.apply(
-            lambda row: map_psm_row(row, ignore_unsupported=args.ignore_unsupported), axis=1, result_type='expand'
+            lambda row: map_psm_row(row, sequence_mapper=seqmap, ignore_unsupported=args.ignore_unsupported), axis=1, result_type='expand'
             ).explode(column=explode_cols), meta=out_dtypes)
 
     # Drop empty rows (corresponds to input sequences that had no matches - e.g. set to nan)
