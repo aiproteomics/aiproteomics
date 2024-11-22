@@ -33,6 +33,36 @@ class ModelParams:
     def from_dict(self, d):
         raise NotImplementedError
 
+    @staticmethod
+    def from_dict(ptype: ModelType, d: dict):
+        """
+            Given a model type `ptype` and a `dict` of the
+            serialized parameters for that model, makes an
+            instance of the corresponding ModelParams subclass
+            and returns it.
+        """
+
+        if ptype == ModelType.MSMS:
+            return ModelParamsMSMS(
+                    seq_len=int(d["seq_len"]),
+                    ions=d["ions"],
+                    max_charge=int(d["max_charge"]),
+                    neutral_losses=d["neutral_losses"]
+            )
+
+        if ptype == ModelType.RT:
+            return ModelParamsRT(
+                    seq_len=int(d["seq_len"]),
+                    iRT_rescaling_mean=float(d["iRT_rescaling_mean"]),
+                    iRT_rescaling_var=float(d["iRT_rescaling_var"])
+            )
+
+        if ptype == ModelType.CCS:
+            return ModelParamsCCS(
+                    seq_len=int(d["seq_len"])
+            )
+
+        raise ValueError(f"No matching ModelParams builder for type {ptype}")
 
 
 @dataclass
@@ -99,7 +129,6 @@ class ModelParamsMSMS(ModelParams):
             Return model parameters as a `dict`
         """
         return asdict(self)
-
 
 
 @dataclass
@@ -174,10 +203,15 @@ class AIProteomicsModel:
         # return df of all generated spectra, or iRT values, or ccs values
         pass
 
-    def to_dir(self, dirpath, overwrite=False, config_fname="config.json", nn_model_fname="nn.onnx"):
+    def to_dir(self, dirpath, overwrite=False, config_fname="config.json", nn_model_fname="model.keras"):
+        """
+        Dump this `AIProteomicsModel` to a directory, containing a config json file and the AI model
+        itself. The model can then be reloaded again using the `AIProteomicsModel.from_dir()` method.
+        """
 
         dirpath = Path(dirpath)
         config_fname = Path(config_fname)
+        nn_model_fname = nn_model_fname
         confpath = dirpath / config_fname
         nnpath = dirpath / nn_model_fname
 
@@ -208,9 +242,51 @@ class AIProteomicsModel:
             json.dump(params_dict, conffile, indent=4)
 
         # Write NN model to the model directory too
-        tf2onnx.convert.from_keras(self.nn_model, output_path=nnpath)
+#        tf2onnx.convert.from_keras(self.nn_model, output_path=nnpath)
+        self.nn_model.save(nnpath)
 
 
-    def from_dir(self):
-        # Previously generate model as ONNX? Then can easily load from or save to? Then dump in dir along with rest?
-        pass
+    @staticmethod
+    def from_dir(dirpath, config_fname="config.json"):
+        """
+        Reload an `AIProteomicsModel` using the information in the given directory, `dirpath`.
+
+        Returns a new `AIProteomicsModel`.
+        """
+
+        dirpath = Path(dirpath)
+        config_fname = Path(config_fname)
+        confpath = dirpath / config_fname
+
+        with open(confpath, "r", encoding="utf-8") as conffile:
+            params_dict = json.load(conffile)
+
+
+        # Check that expected essential keys are present
+        assert "model_type" in params_dict
+        assert "model_params" in params_dict
+        assert "seq_map" in params_dict
+        assert "nn_model" in params_dict
+
+        # Get (enum form) of the model type (e.g. MSMS)
+        model_type = ModelType(params_dict["model_type"])
+
+        # Build ModelParams and SequenceMapper objects using the information in the config file
+        model_params = ModelParams.from_dict(model_type, params_dict["model_params"])
+        seq_map = SequenceMapper.from_dict(params_dict["seq_map"])
+
+        # Load the AI model from file
+        nnpath = dirpath / params_dict["nn_model"]
+        nn_model = tf.keras.models.load_model(nnpath)
+
+        #
+
+        print(nn_model)
+
+        print(model_params)
+        print(seq_map)
+
+        return params_dict
+
+
+

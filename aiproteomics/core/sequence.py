@@ -24,7 +24,6 @@ class SequenceMapping:
     aa_mod_map: dict
 
 
-
 PHOSPHO_MAPPING = SequenceMapping(
 
     description = "Mapping for the phospho model",
@@ -162,3 +161,17 @@ class SequenceMapper:
 
     def to_dict(self):
         return asdict(self)
+
+    @staticmethod
+    def from_dict(d):
+        return SequenceMapper(
+                min_seq_len=int(d["min_seq_len"]),
+                max_seq_len=int(d["max_seq_len"]),
+                mapping = SequenceMapping(
+                        description=d["mapping"]["description"],
+                        aa_int_map=d["mapping"]["aa_int_map"],
+                        aa_mod_map=d["mapping"]["aa_mod_map"]
+                    )
+                )
+
+

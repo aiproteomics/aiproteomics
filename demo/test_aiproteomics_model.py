@@ -29,6 +29,13 @@ if __name__ == "__main__":
     # Save the model
     msmsmodel.to_dir("testmodelfrag/", overwrite=True)
 
+
+    # Load the model back in as a new AIProteomicsModel instance
+    reloaded_msms = AIProteomicsModel.from_dir("testmodelfrag/")
+
+    # Check what's inside
+    print(reloaded_msms)
+
     # -----------
 
     # Try making a prosit-style retention time model
@@ -36,6 +43,8 @@ if __name__ == "__main__":
     params = ModelParamsRT(seq_len=30, iRT_rescaling_mean=101.11514, iRT_rescaling_var=46.5882)
     rtmodel = AIProteomicsModel(seq_map=seqmap, model_params=params, nn_model=nn_model, nn_model_creation_metadata=creation_meta)
     rtmodel.to_dir("testmodelrt/", overwrite=True)
+    reloaded_rt = AIProteomicsModel.from_dir("testmodelrt/")
+    print(reloaded_rt)
 
 
     # -----------
@@ -45,6 +54,8 @@ if __name__ == "__main__":
     params = ModelParamsCCS(seq_len=30)
     ccsmodel = AIProteomicsModel(seq_map=seqmap, model_params=params, nn_model=nn_model, nn_model_creation_metadata=creation_meta)
     ccsmodel.to_dir("testmodelccs/", overwrite=True)
+    reloaded_ccs = AIProteomicsModel.from_dir("testmodelccs/")
+    print(reloaded_ccs)
 
 
 
