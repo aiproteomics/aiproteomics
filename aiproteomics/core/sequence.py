@@ -29,6 +29,7 @@ PHOSPHO_MAPPING = SequenceMapping(
     description = "Mapping for the phospho model",
 
     aa_int_map = {
+            ' ': 0,
             'A': 1,
             'C': 2,
             'D': 3,
@@ -74,6 +75,7 @@ PROSIT_MAPPING = SequenceMapping(
     # Mapping from amino acid to integers in the model input layer
     # Note that this includes amino acids with modifications.
     aa_int_map = {
+            ' ': 0,
             'A': 1,
             'C': 2,
             'D': 3,
@@ -122,7 +124,9 @@ class SequenceMapper:
         if l < self.min_seq_len or l > self.max_seq_len:
             raise ValueError(f"Sequence {seq} does not fit in range defined by min_seq_len={self.min_seq_len} and max_seq_len={self.max_seq_len}")
 
-        return np.array([self.mapping.aa_int_map[letter] for letter in single_char_seq])
+        single_char_seq = single_char_seq.ljust(self.max_seq_len, ' ')
+
+        return np.array([self.mapping.aa_int_map[letter] for letter in single_char_seq], dtype=np.int32)
 
 
     def generate_unmodified_peptide_sequence(self, modified_seq):
@@ -154,7 +158,7 @@ class SequenceMapper:
         if '(' in seq:
             if ignore_unsupported:
                 return None
-            raise ValueError(f'Sequence {seq} contains unsupported amino acid modifications. List of supported mods: {self.aa_mod_map.keys()}')
+            raise ValueError(f'Sequence {seq} contains unsupported amino acid modifications. List of supported mods: {self.mapping.aa_mod_map.keys()}')
 
         return seq
 
