@@ -44,7 +44,7 @@ def read_tfrecord(example, labeled):
     return features
 
 
-def load_dataset(filenames, labeled):
+def load_dataset(filenames, labeled=True):
     ignore_order = tf.data.Options()
     ignore_order.experimental_deterministic = False  # disable order, increase speed
     dataset = tf.data.TFRecordDataset(
