@@ -17,4 +17,4 @@ echo "training new transformer model"
 
 data_dir=/gpfs/work2/0/einf3550/randomized-c1000-mf4-l1
 
-python train.py "$data_dir"
+python train.py "$data_dir" --distributed
