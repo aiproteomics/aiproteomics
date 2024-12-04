@@ -4,19 +4,21 @@ from enum import Enum
 from pathlib import Path
 
 import clize
+import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from tensorflow import keras
-from wandb.apis.importers import wandb
 from wandb.integration.keras import WandbMetricsLogger
-import tensorflow as tf
 
+import wandb
 from aiproteomics.modelgen.keras_transformer import create_transformer, create_baseline_model
 from aiproteomics.modelgen.prosit1.losses import masked_spectral_distance
-from aiproteomics.tfrecords import load_dataset, get_dataset
+from aiproteomics.tfrecords import load_dataset, get_dataset, BATCH_SIZE
 
 TRAIN_SIZE = 0.7
 NUM_EPOCHS = 200
 BATCH_SIZE = 64
+LEARNING_RATE = 0.001
+WEIGHT_DECAY = 0.0001
 
 
 @clize.parser.value_converter
@@ -24,18 +26,18 @@ class ModelType(Enum):
     TRANSFORMER = "transformer"
     FULLY_CONNECTED = "fully_connected"
 
-@tf.function
+
 def run_experiment(
         model,
         train_data_files,
         validation_data_files,
         test_data_files,
         num_epochs,
-        learning_rate,
-        weight_decay,
-        batch_size,
+        learning_rate=LEARNING_RATE,
+        weight_decay=WEIGHT_DECAY,
+        batch_size=BATCH_SIZE
 ):
-    optimizer = keras.optimizers.AdamW(
+    optimizer = keras.optimizers.Adam(
         learning_rate=learning_rate, weight_decay=weight_decay
     )
     # Set up wandb
@@ -93,23 +95,23 @@ def train(data_dir, *, distributed: bool = False,
     train_files, remainder = train_test_split(files, train_size=train_size)
     val_files, test_files = train_test_split(remainder, train_size=train_size)
 
-    train_set = load_dataset(train_files)
-    val_set = load_dataset(val_files)
-    test_set = load_dataset(test_files)
-
     if distributed:
         print("Training in distributed mode.")
         mirrored_strategy = tf.distribute.MirroredStrategy()
         with mirrored_strategy.scope():
             model = build_model(model_type)
 
-        run_experiment(model, train_set, val_set, test_set, NUM_EPOCHS, BATCH_SIZE)
+        run_experiment(model, train_files, val_files, test_files, NUM_EPOCHS, BATCH_SIZE)
     else:
         model = build_model(model_type)
 
-        run_experiment(model, train_set, val_set, test_set, NUM_EPOCHS, BATCH_SIZE)
+        run_experiment(model, train_data_files=train_files,
+                       validation_data_files=val_files,
+                       test_data_files=test_files,
+                       num_epochs=NUM_EPOCHS,
+                       batch_size=BATCH_SIZE)
 
-@tf.function
+
 def build_model(model_type):
     # Build model
     match model_type:

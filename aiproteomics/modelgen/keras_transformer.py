@@ -13,8 +13,7 @@ CATEGORICAL_FEATURES = {"pep": list(range(VOCABULARY_SIZE))}
 TARGET_FEATURE_NAME = "msms"
 CATEGORICAL_FEATURE_NAMES = list(CATEGORICAL_FEATURES.keys())
 
-LEARNING_RATE = 0.001
-WEIGHT_DECAY = 0.0001
+
 DROPOUT_RATE = 0.2
 
 NUM_TRANSFORMER_BLOCKS = 3  # Number of transformer blocks.
@@ -27,7 +26,7 @@ MLP_HIDDEN_UNITS_FACTORS = (
 
 NUM_MLP_BLOCKS = 2
 
-@tf.function
+
 def create_model_inputs():
     # Inputs
     charge_input = layers.Input(
@@ -36,9 +35,11 @@ def create_model_inputs():
     peptides = layers.Input(
         name="pep", dtype="int32", batch_input_shape=(None, SEQUENCE_LENGTH)
     )
+
+
     return {"charge": charge_input, "pep": peptides}
 
-@tf.function
+
 def encode_inputs(inputs, embedding_dims, vocabulary_size=VOCABULARY_SIZE, expand_charge=False):
     # Encoding
     embedding = layers.Embedding(input_dim=vocabulary_size, output_dim=embedding_dims)
@@ -53,7 +54,6 @@ def encode_inputs(inputs, embedding_dims, vocabulary_size=VOCABULARY_SIZE, expan
 
     return charge_feature, pep_embedding
 
-@tf.function
 def create_mlp(hidden_units,
                activation,
                normalization_layer,
@@ -70,7 +70,6 @@ def create_mlp(hidden_units,
 
     return mlp
 
-@tf.function
 def create_transformer(
         num_transformer_blocks=NUM_TRANSFORMER_BLOCKS,
         num_heads=NUM_HEADS,
