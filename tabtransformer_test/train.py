@@ -37,6 +37,7 @@ def run_experiment(
         weight_decay=WEIGHT_DECAY,
         batch_size=BATCH_SIZE
 ):
+    # Would like to use AdamW, but it's not available in the tensorflow version on snellius
     optimizer = keras.optimizers.Adam(
         learning_rate=learning_rate, weight_decay=weight_decay
     )
