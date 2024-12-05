@@ -2,6 +2,9 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from functools import partial
+import wandb
+
+from aiproteomics.modelgen.prosit1.losses import masked_spectral_distance
 
 AUTOTUNE = tf.data.AUTOTUNE
 VOCABULARY_SIZE = 30
@@ -13,7 +16,6 @@ CATEGORICAL_FEATURES = {"pep": list(range(VOCABULARY_SIZE))}
 TARGET_FEATURE_NAME = "msms"
 CATEGORICAL_FEATURE_NAMES = list(CATEGORICAL_FEATURES.keys())
 
-
 DROPOUT_RATE = 0.2
 
 NUM_TRANSFORMER_BLOCKS = 3  # Number of transformer blocks.
@@ -24,18 +26,21 @@ MLP_HIDDEN_UNITS_FACTORS = (
     1,
 )
 
+LEARNING_RATE = 0.001
+WEIGHT_DECAY = 0.0001
+
+
 NUM_MLP_BLOCKS = 2
 
 
 def create_model_inputs():
     # Inputs
-    charge_input = layers.Input(
+    charge_input = tf.convert_to_tensor(layers.Input(
         name="charge", dtype="float32", batch_input_shape=(None, 1)
-    )
-    peptides = layers.Input(
+    ))
+    peptides = tf.convert_to_tensor(layers.Input(
         name="pep", dtype="int32", batch_input_shape=(None, SEQUENCE_LENGTH)
-    )
-
+    ))
 
     return {"charge": charge_input, "pep": peptides}
 
@@ -54,6 +59,7 @@ def encode_inputs(inputs, embedding_dims, vocabulary_size=VOCABULARY_SIZE, expan
 
     return charge_feature, pep_embedding
 
+
 def create_mlp(hidden_units,
                activation,
                normalization_layer,
@@ -70,6 +76,7 @@ def create_mlp(hidden_units,
 
     return mlp
 
+
 def create_transformer(
         num_transformer_blocks=NUM_TRANSFORMER_BLOCKS,
         num_heads=NUM_HEADS,
@@ -77,7 +84,11 @@ def create_transformer(
         mlp_hidden_units_factors=MLP_HIDDEN_UNITS_FACTORS,
         dropout_rate=DROPOUT_RATE,
         output_shape=OUTPUT_SHAPE,
+        learning_rate=LEARNING_RATE,
+        weight_decay=WEIGHT_DECAY
 ):
+
+
     # Create model inputs.
     inputs = create_model_inputs()
     # encode features.
@@ -143,6 +154,19 @@ def create_transformer(
 
     outputs = layers.Dense(units=output_shape)(features)
     model = keras.Model(inputs=inputs, outputs=outputs, name="keras_transformer")
+
+    # Would like to use AdamW, but it's not available in the tensorflow version on snellius
+    optimizer = keras.optimizers.Adam(
+        learning_rate=learning_rate, weight_decay=weight_decay
+    )
+
+
+    model.compile(
+        optimizer=optimizer,
+        loss=masked_spectral_distance,
+        metrics=[masked_spectral_distance],
+    )
+
     return model
 
 
@@ -198,4 +222,3 @@ def create_baseline_model(
 
     model = keras.Model(inputs=inputs, outputs=output_layer, name="baseline")
     return model
-

@@ -3,16 +3,17 @@
 from enum import Enum
 from pathlib import Path
 
+from tensorflow import keras
 import clize
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
-from tensorflow import keras
-from wandb.integration.keras import WandbMetricsLogger
+from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 from aiproteomics.modelgen.keras_transformer import create_transformer, create_baseline_model
-from aiproteomics.modelgen.prosit1.losses import masked_spectral_distance
-from aiproteomics.tfrecords import load_dataset, get_dataset, BATCH_SIZE
+from aiproteomics.tfrecords import get_dataset, BATCH_SIZE
+
+MODEL_DIR = "./data"
 
 TRAIN_SIZE = 0.7
 NUM_EPOCHS = 200
@@ -35,12 +36,9 @@ def run_experiment(
         num_epochs,
         learning_rate=LEARNING_RATE,
         weight_decay=WEIGHT_DECAY,
-        batch_size=BATCH_SIZE
+        batch_size=BATCH_SIZE,
+        distributed=False
 ):
-    # Would like to use AdamW, but it's not available in the tensorflow version on snellius
-    optimizer = keras.optimizers.Adam(
-        learning_rate=learning_rate, weight_decay=weight_decay
-    )
     # Set up wandb
 
     # start a new wandb run to track this script
@@ -51,16 +49,9 @@ def run_experiment(
         # track hyperparameters and run metadata
         config={
             "model": model.name,
-            "num_epochs": num_epochs,
             "learning_rate": learning_rate,
             "weight_decay": weight_decay,
         }
-    )
-
-    model.compile(
-        optimizer=optimizer,
-        loss=masked_spectral_distance,
-        metrics=[masked_spectral_distance],
     )
 
     train_dataset = get_dataset(train_data_files)
@@ -71,7 +62,7 @@ def run_experiment(
         train_dataset,
         epochs=num_epochs,
         validation_data=validation_dataset,
-        callbacks=[WandbMetricsLogger(log_freq="batch")]
+        callbacks=get_callbacks(MODEL_DIR),
 
     )
     print("Model training finished")
@@ -124,6 +115,18 @@ def build_model(model_type):
             raise ValueError(f"Model type {model_type} not supported.")
     return model
 
+def get_callbacks(model_dir_path):
+    loss_format = "{val_loss:.5f}"
+    epoch_format = "{epoch:02d}"
+    weights_file = "{}/weight_{}_{}.hdf5".format(
+        model_dir_path, epoch_format, loss_format
+    )
+    save = keras.callbacks.ModelCheckpoint(weights_file, save_best_only=True,
+                                           save_weights_only=True)
+
+    logger = WandbMetricsLogger(log_freq=5)
+    wandb_checkpoint = WandbModelCheckpoint("models")
+    return [save, logger, wandb_checkpoint]
 
 if __name__ == "__main__":
     clize.run(train)
