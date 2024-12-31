@@ -18,17 +18,39 @@ from aiproteomics.core.sequence import SequenceMapper
 from aiproteomics.core.spectrum import output_layer_to_spectrum
 
 class ModelType(Enum):
+    """
+    Defines the allowed prediction model types:
+        `MSMS`: A fragmentation model
+        `RT`: A (normalized) retention time model
+        `CCS`: An ion mobility model
+    """
+
     MSMS = "msms"
     RT = "rt"
     CCS = "ccs"
 
 
 class ModelParams:
+    """
+    A base class for storing key parameters to build, pre- and post-process
+    MSMS, RT and CCS prediction models. Helps with serializing/deserializing
+    the model parameters to file (needed when saving an AIProteomicsModel).
+    """
 
     def get_model_type(self):
+        """
+        Must be implemented by a subclass.
+        Should return one of the allowed model types defined in `ModelType`
+        """
         raise NotImplementedError
 
     def to_dict(self):
+        """
+        Must be implemented by a subclass.
+        Should provide the means to convert itself to a dict. Mainly
+        used for saving model to/from JSON, so this should match what is
+        required by `.from_dict()` to recreate this object.
+        """
         raise NotImplementedError
 
     @staticmethod
@@ -103,6 +125,9 @@ class ModelParamsMSMS(ModelParams):
 
 
     def get_model_type(self):
+        """
+        Returns the type of this model: a fragmentation model
+        """
         return ModelType.MSMS
 
 
@@ -144,6 +169,9 @@ class ModelParamsRT:
     iRT_rescaling_var: float
 
     def get_model_type(self):
+        """
+        Returns the type of this model: a normalized retention time model
+        """
         return ModelType.RT
 
 
@@ -174,6 +202,9 @@ class ModelParamsCCS:
     seq_len: int
 
     def get_model_type(self):
+        """
+        Returns the type of this model: an ion mobility model
+        """
         return ModelType.CCS
 
 
@@ -201,15 +232,6 @@ class AIProteomicsModel:
     model_params: ModelParams
     nn_model: tf.keras.Model
     nn_model_creation_metadata: dict
-
-    def process_inputs(self, sequence: np.array, charge: np.array):
-        pass
-
-
-    def process_outputs(self):
-        # return df of all generated spectra, or iRT values, or ccs values
-        pass
-
 
     def to_dir(self, dirpath, overwrite=False, config_fname="config.json", nn_model_fname="model.keras"):
         """
@@ -293,6 +315,20 @@ class AIProteomicsModel:
 
 
 def build_spectral_library(inputs: pd.DataFrame, msms: AIProteomicsModel = None, rt: AIProteomicsModel = None, ccs: AIProteomicsModel = None, pY_threshold = 0.8):
+    """
+    A utility function that generates a spectral library for a batch of inputs, given one or more prediction models.
+
+    Args:
+        `inputs`: A `pandas.DataFrame` with two columns: "peptide" (a string representation of a peptide, including UniMod modifications)
+                  and "charge" (an integer value giving the charge on this precursor sequence).
+        `msms`: An `AIProteomicsModel` for predicting the msms spectra (including pY) for a given peptide sequence and charge.
+        `rt` (Optional): An `AIProteomicsModel` for predicting the normalized retention time for a given peptide sequence.
+        `ccs`(Optional): An `AIProteomicsModel` for predicting the ion mobility for a given peptide sequence.
+        `pY_threshold`: An intensity value below which the predicted pY value is ignored (not significant)
+
+    Returns:
+        A `pandas.DataFrame` containing the predicted spectra of all sequences provided in the `inputs` `DataFrame`.
+    """
 
     if msms is None:
         raise ValueError("At least an msms model must be provided or no spectral library can be generated")

@@ -110,6 +110,17 @@ PROSIT_MAPPING = SequenceMapping(
 
 @dataclass
 class SequenceMapper:
+    """
+    Class that implements mapping from string representations of peptide sequences to other forms,
+    including integer arrays required for input to AI models.
+
+    It is configured with:
+        `min_seq_len`: Sequences with fewer amino acids will be filtered
+        `max_seq_len`: Sequences with more amino acids will be filtered
+        `mapping`: A `SequenceMapping` object defining how string representations
+                   of amino acids (and their modifications) should be mapped.
+
+    """
 
     min_seq_len: int
     max_seq_len: int
@@ -118,6 +129,11 @@ class SequenceMapper:
 
     # Mapping from amino acid to integers in the model input layer
     def map_to_int(self, seq):
+        """
+        Maps the given string representation of a peptide sequence `seq` to an array
+        of ints ready for input to an AI model's "peptide" input layer.
+        """
+
         single_char_seq = self.unimod_to_single_char_sequence(seq)
 
         l = len(single_char_seq)
@@ -127,7 +143,6 @@ class SequenceMapper:
         single_char_seq = single_char_seq.ljust(self.max_seq_len, ' ')
 
         return np.array([self.mapping.aa_int_map[letter] for letter in single_char_seq], dtype=np.int32)
-#        return [self.mapping.aa_int_map[letter] for letter in single_char_seq]
 
 
     def generate_unmodified_peptide_sequence(self, modified_seq):
@@ -165,10 +180,16 @@ class SequenceMapper:
 
 
     def to_dict(self):
+        """
+        Return a `dict` representation of this object. Useful for serializing to file.
+        """
         return asdict(self)
 
     @staticmethod
     def from_dict(d):
+        """
+        Initialize a new `SequenceMapper` object from information in a given `dict`, `d`
+        """
         return SequenceMapper(
                 min_seq_len=int(d["min_seq_len"]),
                 max_seq_len=int(d["max_seq_len"]),
