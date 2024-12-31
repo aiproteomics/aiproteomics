@@ -3,7 +3,7 @@ import pandas as pd
 from aiproteomics.core.sequence import SequenceMapper, PHOSPHO_MAPPING, PROSIT_MAPPING
 from aiproteomics.core.modeltypes import ModelParamsMSMS, ModelParamsRT, ModelParamsCCS, AIProteomicsModel
 from aiproteomics.core.utils import build_spectral_library
-from aiproteomics.core.models import generate_dummy_msms_model, generate_dummy_iRT_model, generate_dummy_ccs_model
+from aiproteomics.models.dummy_models import generate_dummy_msms_model, generate_dummy_iRT_model, generate_dummy_ccs_model
 
 
 if __name__ == "__main__":

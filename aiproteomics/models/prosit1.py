@@ -1,7 +1,6 @@
 from tensorflow import keras
 from tensorflow.keras import layers
 from .prosit1.layers import Attention
-from .save_model import save_model
 
 
 def build_prosit1_model():  # pylint: disable=too-many-locals
@@ -220,9 +219,4 @@ def build_prosit1_model():  # pylint: disable=too-many-locals
     )
     model.compile(loss="masked_spectral_distance", optimizer="adam", metrics=["accuracy"])
 
-    save_model(model, "prosit1", framework="keras", output_formats="onnx", overwrite=True)
     return model
-
-
-if __name__ == "__main__":
-    build_prosit1_model()
