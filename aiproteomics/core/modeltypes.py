@@ -314,7 +314,11 @@ class AIProteomicsModel:
                                 )
 
 
-def build_spectral_library(inputs: pd.DataFrame, msms: AIProteomicsModel = None, rt: AIProteomicsModel = None, ccs: AIProteomicsModel = None, pY_threshold = 0.8):
+def build_spectral_library(inputs: pd.DataFrame,
+                           msms: AIProteomicsModel = None,
+                           rt: AIProteomicsModel = None,
+                           ccs: AIProteomicsModel = None,
+                           pY_threshold = 0.8):
     """
     A utility function that generates a spectral library for a batch of inputs, given one or more prediction models.
 

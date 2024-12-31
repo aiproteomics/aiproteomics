@@ -174,7 +174,8 @@ class SequenceMapper:
         if '(' in seq:
             if ignore_unsupported:
                 return None
-            raise ValueError(f'Sequence {seq} contains unsupported amino acid modifications. List of supported mods: {self.mapping.aa_mod_map.keys()}')
+            raise ValueError(f'Sequence {seq} contains unsupported amino acid modifications. '
+                             f'List of supported mods: {self.mapping.aa_mod_map.keys()}')
 
         return seq
 

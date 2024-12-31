@@ -51,3 +51,4 @@ pydocstyle:
 pylint:
   disable:
     - too-many-arguments
+    - too-many-branches

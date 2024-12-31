@@ -41,6 +41,7 @@ def generate_aa_mass():
 
     return aa_mass
 
+
 # Calculate the amino acid mass values upon import of the library
 # as they will be used frequently
 aa_mass = generate_aa_mass()
