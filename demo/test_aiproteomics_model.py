@@ -2,7 +2,7 @@ import pandas as pd
 
 from aiproteomics.core.sequence import SequenceMapper, PHOSPHO_MAPPING, PROSIT_MAPPING
 from aiproteomics.core.modeltypes import ModelParamsMSMS, ModelParamsRT, ModelParamsCCS, AIProteomicsModel, build_spectral_library
-from aiproteomics.core.models import generate_msms_transformer, generate_iRT_transformer, generate_ccs_transformer
+from aiproteomics.core.models import generate_dummy_msms_model, generate_dummy_iRT_model, generate_dummy_ccs_model
 
 
 if __name__ == "__main__":
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     params = ModelParamsMSMS(seq_len=50, ions=['y','b'], max_charge=2, neutral_losses=['', 'H3PO4'])
 
     # Make a compatible NN model
-    nn_model, creation_meta = generate_msms_transformer(
+    nn_model, creation_meta = generate_dummy_msms_model(
         params=params,
         num_layers=6,
         num_heads=8,
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # Try making a phospho-style iRT model
     seqmap = SequenceMapper(min_seq_len=7, max_seq_len=50, mapping=PHOSPHO_MAPPING)
     params = ModelParamsRT(seq_len=50, iRT_rescaling_mean=101.11514, iRT_rescaling_var=46.5882)
-    nn_model, creation_meta = generate_iRT_transformer(
+    nn_model, creation_meta = generate_dummy_iRT_model(
         params=params,
         num_layers=6,
         num_heads=8,
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     # Try making a phospho-style ion mobility model
     seqmap = SequenceMapper(min_seq_len=7, max_seq_len=50, mapping=PHOSPHO_MAPPING)
     params = ModelParamsCCS(seq_len=50)
-    nn_model, creation_meta = generate_ccs_transformer(
+    nn_model, creation_meta = generate_dummy_ccs_model(
         params=params,
         num_layers=6,
         num_heads=8,

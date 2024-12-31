@@ -1,13 +1,18 @@
 from tensorflow import keras
 
-# This is a purely dummy model just so we can return a keras model object
-# and test saving the AIProteomicsModel
-def generate_msms_transformer(
+def generate_dummy_msms_model(
     num_layers=6,
     num_heads=8,
     d_ff=2048,
     dropout_rate=0.1,
     params=None):
+
+    """
+    This generates a purely dummy MSMS model for testing purposes.
+    It generates a `keras` model that takes a peptide sequence and charge as input,
+    and outputs the predicted intensities (of length the number of possible fragments)
+    and pY (a single value).
+    """
 
     peptide = keras.Input(
         name="peptide", dtype="float32", sparse=False, batch_input_shape=(None, params.seq_len)
@@ -51,12 +56,18 @@ def generate_msms_transformer(
     return model, model_creation_metadata
 
 
-def generate_iRT_transformer(
+def generate_dummy_iRT_model(
     num_layers=6,
     num_heads=8,
     d_ff=2048,
     dropout_rate=0.1,
     params=None):
+
+    """
+    This generates a purely dummy retention time model for testing purposes.
+    It generates a `keras` model that takes a peptide sequence as input,
+    and outputs the predicted retention time (i.e. length 1)
+    """
 
     peptide = keras.Input(
         name="peptide", dtype="float32", sparse=False, batch_input_shape=(None, params.seq_len)
@@ -91,12 +102,18 @@ def generate_iRT_transformer(
     return model, model_creation_metadata
 
 
-def generate_ccs_transformer(
+def generate_dummy_ccs_model(
     num_layers=6,
     num_heads=8,
     d_ff=2048,
     dropout_rate=0.1,
     params=None):
+
+    """
+    This generates a purely dummy ion mobility model for testing purposes.
+    It generates a `keras` model that takes a peptide sequence as input,
+    and outputs the predicted ion mobility (i.e. length 1)
+    """
 
     peptide = keras.Input(
         name="peptide", dtype="float32", sparse=False, batch_input_shape=(None, params.seq_len)
