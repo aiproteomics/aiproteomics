@@ -1,6 +1,5 @@
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
 from functools import partial
 
 from aiproteomics.models.custom_losses import masked_spectral_distance
@@ -34,10 +33,10 @@ NUM_MLP_BLOCKS = 2
 
 def create_model_inputs():
     # Inputs
-    charge_input = tf.convert_to_tensor(layers.Input(
+    charge_input = tf.convert_to_tensor(keras.layers.Input(
         name="charge", dtype="float32", batch_input_shape=(None, 1)
     ))
-    peptides = tf.convert_to_tensor(layers.Input(
+    peptides = tf.convert_to_tensor(keras.layers.Input(
         name="pep", dtype="int32", batch_input_shape=(None, SEQUENCE_LENGTH)
     ))
 
@@ -46,7 +45,7 @@ def create_model_inputs():
 
 def encode_inputs(inputs, embedding_dims, vocabulary_size=VOCABULARY_SIZE, expand_charge=False):
     # Encoding
-    embedding = layers.Embedding(input_dim=vocabulary_size, output_dim=embedding_dims)
+    embedding = keras.layers.Embedding(input_dim=vocabulary_size, output_dim=embedding_dims)
 
     pep_embedding = embedding(inputs["pep"])
     charge_feature = inputs["charge"]
@@ -68,8 +67,8 @@ def create_mlp(hidden_units,
 
     for units in hidden_units:
         mlp_layers.append(normalization_layer())
-        mlp_layers.append(layers.Dense(units, activation=activation))
-        mlp_layers.append(layers.Dropout(dropout_rate))
+        mlp_layers.append(keras.layers.Dense(units, activation=activation))
+        mlp_layers.append(keras.layers.Dropout(dropout_rate))
 
     mlp = keras.Sequential(mlp_layers, name=name)
 
@@ -100,18 +99,18 @@ def create_transformer(
     # Create multiple layers of the Transformer block.
     for block_idx in range(num_transformer_blocks):
         # Create a multi-head attention layer.
-        attention_output = layers.MultiHeadAttention(
+        attention_output = keras.layers.MultiHeadAttention(
             num_heads=num_heads,
             key_dim=embedding_dims,
             dropout=dropout_rate,
             name=f"multihead_attention_{block_idx}",
         )(pep_embedding, pep_embedding)
         # Skip connection 1.
-        x = layers.Add(name=f"skip_connection1_{block_idx}")(
+        x = keras.layers.Add(name=f"skip_connection1_{block_idx}")(
             [attention_output, pep_embedding]
         )
         # Layer normalization 1.
-        x = layers.LayerNormalization(name=f"layer_norm1_{block_idx}", epsilon=1e-6)(x)
+        x = keras.layers.LayerNormalization(name=f"layer_norm1_{block_idx}", epsilon=1e-6)(x)
 
         # Feedforward.
         feedforward_output = create_mlp(
@@ -119,24 +118,24 @@ def create_transformer(
             dropout_rate=dropout_rate,
             activation=keras.activations.gelu,
             normalization_layer=partial(
-                layers.LayerNormalization, epsilon=1e-6
+                keras.layers.LayerNormalization, epsilon=1e-6
             ),  # using partial to provide keyword arguments before initialization
             name=f"feedforward_{block_idx}",
         )(x)
         # Skip connection 2.
-        x = layers.Add(name=f"skip_connection2_{block_idx}")([feedforward_output, x])
+        x = keras.layers.Add(name=f"skip_connection2_{block_idx}")([feedforward_output, x])
         # Layer normalization 2.
-        pep_features = layers.LayerNormalization(
+        pep_features = keras.layers.LayerNormalization(
             name=f"layer_norm2_{block_idx}", epsilon=1e-6
         )(x)
 
     # Flatten the "contextualized" embeddings of the categorical features.
-    pep_features = layers.Flatten()(pep_features)
+    pep_features = keras.layers.Flatten()(pep_features)
     # Apply layer normalization to the numerical features.
-    charge_feature = layers.LayerNormalization(epsilon=1e-6)(charge_feature)
+    charge_feature = keras.layers.LayerNormalization(epsilon=1e-6)(charge_feature)
 
     # Prepare the input for the final MLP block.
-    features = layers.concatenate([pep_features, charge_feature])
+    features = keras.layers.concatenate([pep_features, charge_feature])
 
     # Compute MLP hidden_units.
     mlp_hidden_units = [
@@ -147,11 +146,11 @@ def create_transformer(
         hidden_units=mlp_hidden_units,
         dropout_rate=dropout_rate,
         activation=keras.activations.selu,
-        normalization_layer=layers.BatchNormalization,
+        normalization_layer=keras.layers.BatchNormalization,
         name="MLP",
     )(features)
 
-    outputs = layers.Dense(units=output_shape)(features)
+    outputs = keras.layers.Dense(units=output_shape)(features)
     model = keras.Model(inputs=inputs, outputs=outputs, name="keras_transformer")
 
     # Would like to use AdamW, but it's not available in the tensorflow version on snellius
@@ -181,19 +180,19 @@ def create_baseline_model(
         inputs, embedding_dims, expand_charge=True
     )
 
-    features = layers.concatenate([charge_feature, encoded_pep], axis=1)
+    features = keras.layers.concatenate([charge_feature, encoded_pep], axis=1)
 
     # Compute Feedforward layer units.
     feedforward_units = [features.shape[-1], OUTPUT_SHAPE]
 
-    # Create several feedforwad layers with skip connections.
+    # Create several feedforward layers with skip connections.
     for layer_idx in range(num_mlp_blocks):
         features = create_mlp(
             hidden_units=feedforward_units,
             dropout_rate=dropout_rate,
 
             activation=keras.activations.gelu,
-            normalization_layer=layers.LayerNormalization,
+            normalization_layer=keras.layers.LayerNormalization,
             name=f"feedforward_{layer_idx}",
         )(features)
 
@@ -203,20 +202,20 @@ def create_baseline_model(
     ]
 
     # Flatten everything
-    features = layers.Flatten()(features)
+    features = keras.layers.Flatten()(features)
 
     # Create final MLP.
     mlp = create_mlp(
         hidden_units=mlp_hidden_units,
         dropout_rate=dropout_rate,
         activation=keras.activations.selu,
-        normalization_layer=layers.BatchNormalization,
+        normalization_layer=keras.layers.BatchNormalization,
         name="MLP",
     )(features)
 
-    activation = layers.Activation(tf.keras.activations.gelu, name='gelu', trainable=True)(mlp)
+    activation = keras.layers.Activation(tf.keras.activations.gelu, name='gelu', trainable=True)(mlp)
 
-    output_layer = layers.Flatten(
+    output_layer = keras.layers.Flatten(
         name='out', data_format='channels_last', trainable=True)(activation)
 
     model = keras.Model(inputs=inputs, outputs=output_layer, name="baseline")

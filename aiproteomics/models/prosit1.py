@@ -1,8 +1,9 @@
 from tensorflow import keras
-from tensorflow.keras import layers
-from aiproteomics.models.custom_losses import masked_spectral_distance
+from keras import constraints, initializers, regularizers
+from keras import backend as K
+from aiproteomics.models.custom_losses import masked_spectral_distance # pylint: disable=unused-import
 
-class Attention(Layer):
+class Attention(keras.layers.Layer):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         context=False,
@@ -122,7 +123,7 @@ def generate_prosit1_model():  # pylint: disable=too-many-locals
     )
 
     # iRT related branch
-    embedding = layers.Embedding(
+    embedding = keras.layers.Embedding(
         name="embedding",
         input_dim=22,
         output_dim=32,
@@ -140,7 +141,7 @@ def generate_prosit1_model():  # pylint: disable=too-many-locals
 
     # Warning: This was a 'CuDNNGRU' layer in the original 2019 model, it is now GRU.
     # Config options have not been changed.
-    encoder1_gru = layers.GRU(
+    encoder1_gru = keras.layers.GRU(
         256,
         name="encoder1_gru",
         kernel_initializer=keras.initializers.VarianceScaling(
@@ -162,16 +163,16 @@ def generate_prosit1_model():  # pylint: disable=too-many-locals
         trainable=True,
     )
 
-    encoder1 = layers.Bidirectional(
+    encoder1 = keras.layers.Bidirectional(
         encoder1_gru, name="encoder1", merge_mode="concat", trainable=True
     )(embedding)
 
-    dropout_1 = layers.Dropout(
+    dropout_1 = keras.layers.Dropout(
         name="dropout_1", rate=0.3, noise_shape=None, seed=None, trainable=True
     )(encoder1)
 
     # Warning: This was a 'CuDNNGRU' layer in the original 2019 model, it is now GRU.
-    encoder2 = layers.GRU(
+    encoder2 = keras.layers.GRU(
         512,
         name="encoder2",
         kernel_initializer=keras.initializers.VarianceScaling(
@@ -193,7 +194,7 @@ def generate_prosit1_model():  # pylint: disable=too-many-locals
         trainable=True,
     )(dropout_1)
 
-    dropout_2 = layers.Dropout(
+    dropout_2 = keras.layers.Dropout(
         name="dropout_2", rate=0.3, noise_shape=None, seed=None, trainable=True
     )(encoder2)
 
@@ -201,10 +202,10 @@ def generate_prosit1_model():  # pylint: disable=too-many-locals
     encoder_att = Attention(name="encoder_att")(dropout_2)
 
     # Collision energy and precursor charge branch
-    meta_in = layers.Concatenate(name="meta_in", trainable=True, axis=-1)(
+    meta_in = keras.layers.Concatenate(name="meta_in", trainable=True, axis=-1)(
         [collision_energy_in, precursor_charge_in]
     )
-    meta_dense = layers.Dense(
+    meta_dense = keras.layers.Dense(
         512,
         name="meta_dense",
         activation="linear",
@@ -221,17 +222,17 @@ def generate_prosit1_model():  # pylint: disable=too-many-locals
         use_bias=True,
     )(meta_in)
 
-    meta_dense_do = layers.Dropout(
+    meta_dense_do = keras.layers.Dropout(
         name="meta_dense_do", rate=0.3, noise_shape=None, seed=None, trainable=True
     )(meta_dense)
 
     # Joining branches
-    add_meta = layers.Multiply(name="add_meta", trainable=True)([encoder_att, meta_dense_do])
+    add_meta = keras.layers.Multiply(name="add_meta", trainable=True)([encoder_att, meta_dense_do])
 
-    repeat = layers.RepeatVector(name="repeat", n=29, trainable=True)(add_meta)
+    repeat = keras.layers.RepeatVector(name="repeat", n=29, trainable=True)(add_meta)
 
     # Warning: This was a 'CuDNNGRU' layer in the original 2019 model, it is now GRU.
-    decoder = layers.GRU(
+    decoder = keras.layers.GRU(
         512,
         name="decoder",
         kernel_initializer=keras.initializers.VarianceScaling(
@@ -253,13 +254,13 @@ def generate_prosit1_model():  # pylint: disable=too-many-locals
         trainable=True,
     )(repeat)
 
-    dropout_3 = layers.Dropout(
+    dropout_3 = keras.layers.Dropout(
         name="dropout_3", rate=0.3, noise_shape=None, seed=None, trainable=True
     )(decoder)
 
-    permute_1 = layers.Permute(name="permute_1", dims=(2, 1), trainable=True)(dropout_3)
+    permute_1 = keras.layers.Permute(name="permute_1", dims=(2, 1), trainable=True)(dropout_3)
 
-    dense_1 = layers.Dense(
+    dense_1 = keras.layers.Dense(
         29,
         name="dense_1",
         activation="softmax",
@@ -276,11 +277,11 @@ def generate_prosit1_model():  # pylint: disable=too-many-locals
         use_bias=True,
     )(permute_1)
 
-    permute_2 = layers.Permute(name="permute_2", dims=(2, 1), trainable=True)(dense_1)
+    permute_2 = keras.layers.Permute(name="permute_2", dims=(2, 1), trainable=True)(dense_1)
 
-    multiply_1 = layers.Multiply(name="multiply_1", trainable=True)([permute_2, dropout_3])
+    multiply_1 = keras.layers.Multiply(name="multiply_1", trainable=True)([permute_2, dropout_3])
 
-    dense_2 = layers.Dense(
+    dense_2 = keras.layers.Dense(
         6,
         name="dense_2",
         activation="linear",
@@ -296,13 +297,13 @@ def generate_prosit1_model():  # pylint: disable=too-many-locals
         trainable=True,
         use_bias=True,
     )
-    timedense = layers.TimeDistributed(dense_2, name="timedense", trainable=True)(multiply_1)
+    timedense = keras.layers.TimeDistributed(dense_2, name="timedense", trainable=True)(multiply_1)
 
-    activation = layers.LeakyReLU(name="activation", alpha=0.30000001192092896, trainable=True)(
+    activation = keras.layers.LeakyReLU(name="activation", alpha=0.30000001192092896, trainable=True)(
         timedense
     )
 
-    output_layer = layers.Flatten(name="out", data_format="channels_last", trainable=True)(
+    output_layer = keras.layers.Flatten(name="out", data_format="channels_last", trainable=True)(
         activation
     )
 
