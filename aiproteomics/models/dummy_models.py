@@ -44,7 +44,7 @@ def generate_dummy_msms_model(
 
     # Return also the metadata of the creation of this nn model
     model_creation_metadata = {
-            "name": "generate_msms_transformer",
+            "name": "generate_dummy_msms_model",
             "args": {
                     "num_layers": num_layers,
                     "num_heads": num_heads,
@@ -90,7 +90,7 @@ def generate_dummy_iRT_model(
 
     # Return also the metadata of the creation of this nn model
     model_creation_metadata = {
-            "name": "generate_iRT_transformer",
+            "name": "generate_dummy_iRT_model",
             "args": {
                     "num_layers": num_layers,
                     "num_heads": num_heads,
@@ -136,7 +136,7 @@ def generate_dummy_ccs_model(
 
     # Return also the metadata of the creation of this nn model
     model_creation_metadata = {
-            "name": "generate_iRT_transformer",
+            "name": "generate_dummy_ccs_model",
             "args": {
                     "num_layers": num_layers,
                     "num_heads": num_heads,
