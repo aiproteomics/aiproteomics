@@ -1,5 +1,7 @@
 from pyteomics import mass
 
+from aiproteomics.core.fragment import Fragment
+
 # Phospho diagnostic peak
 MASS_pY = 216.043
 
@@ -10,18 +12,13 @@ mass_neutral_loss = {
     "H3PO4": mass.calculate_mass(formula='H3PO4')
 }
 
-# Phospho model mapping
-# Supported amino acid modifications
-aa_mod_map = {
-        'M(UniMod:35)': '1',
-        'S(UniMod:21)': '2',
-        'T(UniMod:21)': '3',
-        'Y(UniMod:21)': '4',
-        '(UniMod:1)':   '*',
-        'C(UniMod:4)':  'C'
-}
-
 def generate_aa_mass():
+    """
+        Generates the dict of masses for supported amino acids and modifications.
+
+        Modification compositions are obtained from the Unimod database.
+    """
+
     db = mass.Unimod()
     aa_comp = mass.std_aa_comp.copy()
 
@@ -45,10 +42,20 @@ def generate_aa_mass():
     return aa_mass
 
 
+# Calculate the amino acid mass values upon import of the library
+# as they will be used frequently
 aa_mass = generate_aa_mass()
 
 
-def get_ion_mz(seq, ion_type, ion_break, ion_charge, aa_mass):
+def get_ion_mz(seq, frag: Fragment, aa_mass):
+    """
+    Calculate the mass of the given fragment for the given sequence.
+    """
+
+    ion_type = frag.fragment_type
+    ion_break = frag.fragment_series_number
+    ion_charge = frag.fragment_charge
+
 
     if ion_type[0] in 'abc':
         # If the first entry is acetylation, skip it as not real amino acid (check this!)
@@ -60,3 +67,11 @@ def get_ion_mz(seq, ion_type, ion_break, ion_charge, aa_mass):
         frag_seq = seq[-ion_break:]
 
     return mass.fast_mass(frag_seq, ion_type=ion_type, charge=ion_charge, aa_mass=aa_mass)
+
+
+def get_precursor_mz(seq, charge, aa_mass):
+    """
+        Calculates the precursor m/z for the given sequence
+    """
+
+    return mass.fast_mass(sequence=seq, charge=charge, aa_mass=aa_mass, ion_type='M')

@@ -2,7 +2,6 @@ import keras.backend as k
 import numpy
 import tensorflow
 
-
 def masked_spectral_distance(true, pred):
     # Note, fragment ions that cannot exists (i.e. y20 for a 7mer) must have the value  -1.
 

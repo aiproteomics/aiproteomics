@@ -1,22 +1,50 @@
 import tensorflow as tf
-from aiproteomics.rt.models import build_rt_transformer_model
-from aiproteomics.frag.models.early_fusion_transformer import build_model_early_fusion_transformer
 
-def test_build_rt_transformer_model():
-    model_irt = build_rt_transformer_model(
-        num_layers=6,  # number of layers
-        d_model=512,
-        num_heads=8,  # Number of attention heads
-        d_ff=2048,  # Hidden layer size in feed forward network inside transformer
-        dropout_rate=0.1,  #
-        vocab_size=22,  # number of aminoacids
-        max_len=30,
+from aiproteomics.core.modeltypes import ModelParamsMSMS, ModelParamsRT, ModelParamsCCS
+from aiproteomics.models.dummy_models import generate_dummy_msms_model, generate_dummy_iRT_model, generate_dummy_ccs_model
+from aiproteomics.models.prosit1 import generate_prosit1_model
+
+
+def test_build_dummy_msms_model():
+    params = ModelParamsMSMS(seq_len=50, ions=['y','b'], max_charge=2, neutral_losses=['', 'H3PO4'])
+    nn_model, creation_meta = generate_dummy_msms_model(
+        params=params,
+        num_layers=6,
+        num_heads=8,
+        d_ff=2048,
+        dropout_rate=0.1
     )
-    assert model_irt is not None
-    assert isinstance(model_irt, tf.keras.Model)
+    assert isinstance(nn_model, tf.keras.Model)
+    assert isinstance(creation_meta, dict)
 
 
-def test_build_frag_transformer_model():
-    model_frag = build_model_early_fusion_transformer()
-    assert model_frag is not None
-    assert isinstance(model_frag, tf.keras.Model)
+def test_build_dummy_msms_model():
+    params = ModelParamsRT(seq_len=50, iRT_rescaling_mean=101.11514, iRT_rescaling_var=46.5882)
+    nn_model, creation_meta = generate_dummy_iRT_model(
+        params=params,
+        num_layers=6,
+        num_heads=8,
+        d_ff=2048,
+        dropout_rate=0.1
+    )
+    assert isinstance(nn_model, tf.keras.Model)
+    assert isinstance(creation_meta, dict)
+
+
+def test_build_dummy_msms_model():
+    params = ModelParamsCCS(seq_len=50)
+    nn_model, creation_meta = generate_dummy_ccs_model(
+        params=params,
+        num_layers=6,
+        num_heads=8,
+        d_ff=2048,
+        dropout_rate=0.1
+    )
+    assert isinstance(nn_model, tf.keras.Model)
+    assert isinstance(creation_meta, dict)
+
+
+def test_build_prosit1_model():
+    nn_model, creation_meta = generate_prosit1_model()
+    assert isinstance(nn_model, tf.keras.Model)
+    assert isinstance(creation_meta, dict)
