@@ -94,14 +94,14 @@ class Spectrum:
 
 
 
-def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_charge, pY=None, iRT=None, ccs=None, thresh=0.1):
+def output_layer_to_spectrum(intensities, model_params, sequence, precursor_charge, pY=None, iRT=None, ccs=None, unmodified_seq=None, thresh=0.1):
     """
         Calculates the spectrum (product fragments, with annotations and intensities) corresponding to the
         given model parameters and output layer(s).
 
         Inputs:
             `model_params`: parameters of the AI msms prediction model
-            `output_layer` of the AI msms model (assumed to be something like a numpy Array)
+            `intensities` output layer of the AI msms model (a numpy Array)
             `precursor_charge`, the charge of the peptide prior to fragmentation
             `pY`, if available (otherwise `None`). The predicted diagnostic peak (for phospho)
             `iRT`, if available (otherwise `None`). The predicted normalized retention time of the precursor peptide.
@@ -110,6 +110,11 @@ def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_cha
             A `Spectrum` object containing the list of predicted product fragments and their intensities
 
     """
+
+    # Check that output layer is of required dimensions
+    if len(model_params.fragments) != len(intensities):
+        raise ValueError(f'Length of intensities array ({len(intensities)}) is not the same '
+                         f'as the expected number of fragments for this msms model ({len(model_params.fragments)})')
 
     # Work out length of input sequence (in amino acids) so that the
     # relevant portion of the output layer can be considered
@@ -124,8 +129,8 @@ def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_cha
     # and get the list of fragments that correspond to that. Also
     # mask the fragments that are not valid for the given length
     # and precursor charge.
-    peaks = (mask) & (output_layer > thresh)
-    frag_list = zip(model_params.fragments[peaks], output_layer[peaks])
+    peaks = (mask) & (intensities > thresh)
+    frag_list = zip(model_params.fragments[peaks], intensities[peaks])
 
     # Calc precursor m/z
     precursor_mz = get_precursor_mz(sequence, precursor_charge, aa_mass=aa_mass)
@@ -145,6 +150,7 @@ def output_layer_to_spectrum(output_layer, model_params, sequence, precursor_cha
     return Spectrum(
                 precursor_mz=precursor_mz,
                 precursor_sequence=sequence,
+                precursor_unmodified=unmodified_seq,
                 precursor_charge=precursor_charge,
                 pY=pY,
                 iRT=iRT,

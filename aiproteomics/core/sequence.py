@@ -127,6 +127,7 @@ class SequenceMapper:
         single_char_seq = single_char_seq.ljust(self.max_seq_len, ' ')
 
         return np.array([self.mapping.aa_int_map[letter] for letter in single_char_seq], dtype=np.int32)
+#        return [self.mapping.aa_int_map[letter] for letter in single_char_seq]
 
 
     def generate_unmodified_peptide_sequence(self, modified_seq):
