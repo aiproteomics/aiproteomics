@@ -3,7 +3,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from functools import partial
 
-from aiproteomics.modelgen.prosit1.losses import masked_spectral_distance
+from aiproteomics.models.custom_losses import masked_spectral_distance
 
 AUTOTUNE = tf.data.AUTOTUNE
 VOCABULARY_SIZE = 30
