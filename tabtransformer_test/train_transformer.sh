@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -t 00:10:00
+#SBATCH -t 48:00:00
 #SBATCH -p gpu
 #SBATCH --gpus=4
 #SBATCH --ntasks 1
