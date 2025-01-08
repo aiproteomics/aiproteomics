@@ -39,6 +39,8 @@ def run_experiment(
         batch_size=BATCH_SIZE,
         distributed=False
 ):
+    # Make sure model dir exists
+    Path(MODEL_DIR).mkdir(exist_ok=True)
     # Set up wandb
 
     # start a new wandb run to track this script
@@ -76,11 +78,16 @@ def run_experiment(
 
 def train(data_dir, *, distributed: bool = False,
           model_type=ModelType.TRANSFORMER,
-          train_size=TRAIN_SIZE):
+          train_size=TRAIN_SIZE,
+          file_limit: int = None,
+          epochs: int = NUM_EPOCHS):
     data_dir = Path(data_dir)
     print(f"Training model with data from {data_dir} and a train split of {train_size}.")
 
     files = list(data_dir.glob("*.tfrecord"))
+
+    if file_limit:
+        files = files[:file_limit]
 
     print(f"Number of files: {len(files)}")
 
@@ -115,6 +122,7 @@ def build_model(model_type):
             raise ValueError(f"Model type {model_type} not supported.")
     return model
 
+
 def get_callbacks(model_dir_path):
     loss_format = "{val_loss:.5f}"
     epoch_format = "{epoch:02d}"
@@ -127,6 +135,7 @@ def get_callbacks(model_dir_path):
     logger = WandbMetricsLogger(log_freq=5)
     wandb_checkpoint = WandbModelCheckpoint("models")
     return [save, logger, wandb_checkpoint]
+
 
 if __name__ == "__main__":
     clize.run(train)
