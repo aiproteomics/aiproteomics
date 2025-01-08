@@ -1,11 +1,10 @@
 #!/bin/bash
-#SBATCH -t 24:00:00
+#SBATCH -t 00:10:00
 #SBATCH -p gpu
 #SBATCH --gpus=4
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task=18
 #SBATCH --mem=40G
-
 
 
 module load 2022
@@ -17,4 +16,4 @@ echo "training new transformer model"
 
 data_dir=/gpfs/work2/0/einf3550/randomized-c1000-mf4-l1
 
-python train.py "$data_dir" --distributed
+python train.py "$data_dir" --distributed --epochs 100
