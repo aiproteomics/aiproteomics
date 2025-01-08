@@ -37,3 +37,6 @@ venv3
 poetry.lock
 
 data/
+tabtransformer_test/wandb
+wandb
+.rsyncignore
