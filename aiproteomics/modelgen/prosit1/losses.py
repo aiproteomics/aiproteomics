@@ -15,6 +15,12 @@ def masked_spectral_distance(true, pred):
     arccos = tensorflow.acos(product)
     return 2 * arccos / numpy.pi
 
+def spectral_distance(true, pred):
+    pred_norm = k.l2_normalize(true, axis=-1)
+    true_norm = k.l2_normalize(pred, axis=-1)
+    product = k.sum(pred_norm * true_norm, axis=1)
+    arccos = tensorflow.acos(product)
+    return 2 * arccos / numpy.pi
 
 losses = {"masked_spectral_distance": masked_spectral_distance}
 

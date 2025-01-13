@@ -4,7 +4,7 @@ from tensorflow.keras import layers
 from functools import partial
 import wandb
 
-from aiproteomics.modelgen.prosit1.losses import masked_spectral_distance
+from aiproteomics.modelgen.prosit1.losses import masked_spectral_distance, spectral_distance
 
 AUTOTUNE = tf.data.AUTOTUNE
 VOCABULARY_SIZE = 30
@@ -164,7 +164,7 @@ def create_transformer(
     model.compile(
         optimizer=optimizer,
         loss=masked_spectral_distance,
-        metrics=[masked_spectral_distance],
+        metrics=[masked_spectral_distance, keras.losses.cosine_similarity, spectral_distance],
     )
 
     return model

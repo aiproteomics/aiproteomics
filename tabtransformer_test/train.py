@@ -80,7 +80,8 @@ def train(data_dir, *, distributed: bool = False,
           model_type=ModelType.TRANSFORMER,
           train_size=TRAIN_SIZE,
           file_limit: int = None,
-          epochs: int = NUM_EPOCHS):
+          epochs: int = NUM_EPOCHS,
+          batch_size: int = BATCH_SIZE):
     data_dir = Path(data_dir)
     print(f"Training model with data from {data_dir} and a train split of {train_size}.")
 
@@ -100,15 +101,15 @@ def train(data_dir, *, distributed: bool = False,
         with mirrored_strategy.scope():
             model = build_model(model_type)
 
-        run_experiment(model, train_files, val_files, test_files, NUM_EPOCHS, BATCH_SIZE)
+        run_experiment(model, train_files, val_files, test_files, epochs, batch_size)
     else:
         model = build_model(model_type)
 
         run_experiment(model, train_data_files=train_files,
                        validation_data_files=val_files,
                        test_data_files=test_files,
-                       num_epochs=NUM_EPOCHS,
-                       batch_size=BATCH_SIZE)
+                       num_epochs=epochs,
+                       batch_size=batch_size)
 
 
 def build_model(model_type):
