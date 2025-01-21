@@ -69,9 +69,6 @@ def parse_ions(str_matches, str_intensities, seq):
         else:
             ion_mz = get_ion_mz(seq, frag, aa_mass)
 
-        if frag.fragment_loss_type:
-            ion_mz -= mass_neutral_loss[frag.fragment_loss_type]
-
         annotations.append(annotation)
         intensities.append(float(intensity))
         ion_mzs.append(ion_mz)
