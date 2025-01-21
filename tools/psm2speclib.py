@@ -5,7 +5,7 @@ import dask.dataframe as dd
 from dask.diagnostics import ProgressBar
 
 from aiproteomics.core.definitions import ANNOTATION_pY
-from aiproteomics.core.mz import MASS_pY, get_ion_mz, get_precursor_mz, aa_mass, mass_neutral_loss
+from aiproteomics.core.mz import MASS_pY, get_ion_mz, get_precursor_mz, aa_mass
 from aiproteomics.core.sequence import SequenceMapper, PHOSPHO_MAPPING
 from aiproteomics.core.utils import parse_ion_annotation
 
