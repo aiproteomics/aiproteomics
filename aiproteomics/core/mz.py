@@ -66,7 +66,14 @@ def get_ion_mz(seq, frag: Fragment, aa_mass):
     else:
         frag_seq = seq[-ion_break:]
 
-    return mass.fast_mass(frag_seq, ion_type=ion_type, charge=ion_charge, aa_mass=aa_mass)
+    # Calculate the m/z for the sequence fragment (ignoring neutral losses)
+    mz = mass.fast_mass(frag_seq, ion_type=ion_type, charge=ion_charge, aa_mass=aa_mass)
+
+    # If there is a neutral loss, subtract it from the m/z
+    if frag.fragment_loss_type:
+        mz -= mass_neutral_loss[frag.fragment_loss_type]/ion_charge
+
+    return mz
 
 
 def get_precursor_mz(seq, charge, aa_mass):
