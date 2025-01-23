@@ -12,6 +12,9 @@ def masked_spectral_distance(true, pred):
     pred_norm = k.l2_normalize(true_masked, axis=-1)
     true_norm = k.l2_normalize(pred_masked, axis=-1)
     product = k.sum(pred_norm * true_norm, axis=1)
+
+    # Because of numerical instability, the product can be slightly outside the range [-1, 1]
+    product = k.clip(product, -1.0,  1.0)
     arccos = tensorflow.acos(product)
     return 2 * arccos / numpy.pi
 
