@@ -19,10 +19,15 @@ def test_model_params_msms():
 
 
 def test_output_layer_to_spectrum():
+    """
+    Test generation of a spectral library entry for a random output layer
+    (simulating a possible prediction of an AI model).
+    """
 
     model_params = ModelParamsMSMS(seq_len=50, ions=['y','b'], max_charge=2, neutral_losses=['', 'H3PO4'])
 
     frag_list = model_params.generate_fragment_list()
+    assert len(frag_list) == 392
 
     # Create random output layer
     output_layer = np.random.random(392)
