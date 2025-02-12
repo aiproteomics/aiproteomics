@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aiproteomics"
-version = "0.5.0"
+version = "0.6.0"
 description = "A package for MSMS spectral library prediction models from the field of (phospho-)proteomics, intended to facilitate the testing and comparison of different neural network architectures and existing models."
 authors = [
     {name = "Robin Richardson", email = "r.richardson@esciencecenter.nl"},
@@ -57,7 +57,7 @@ docs = [
 ]
 
 [tool.bumpversion]
-current_version = "0.5.0"
+current_version = "0.6.0"
 
 [[tool.bumpversion.files]]
 filename = "aiproteomics/__init__.py"
