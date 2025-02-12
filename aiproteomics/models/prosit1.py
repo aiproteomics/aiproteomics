@@ -104,11 +104,6 @@ def generate_prosit1_model():  # pylint: disable=too-many-locals
         Gessulat, S., Schmidt, T., Zolg, D.P. et al.
         Prosit: proteome-wide prediction of peptide tandem mass spectra by deep learning.
         Nat Methods 16, 509–518 (2019). https://doi.org/10.1038/s41592-019-0426-7
-
-    Args:
-        output_format (list or str, optional): format or list of formats to save the model as.
-            Set to None to not save the model.
-            Defaults to 'onnx'.
     """
 
     # Input layers
