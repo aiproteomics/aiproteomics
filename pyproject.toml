@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aiproteomics"
-version = "0.3.0"
+version = "0.5.0"
 description = "A package for MSMS spectral library prediction models from the field of (phospho-)proteomics, intended to facilitate the testing and comparison of different neural network architectures and existing models."
 authors = [
     {name = "Robin Richardson", email = "r.richardson@esciencecenter.nl"},
@@ -31,7 +31,6 @@ dependencies = [
     "lxml ==4.9.2",
     "seaborn ==0.12.2",
     "wandb == 0.17.9"
-
 ]
 
 [tool.setuptools]
@@ -41,7 +40,7 @@ py-modules = ["aiproteomics"]
 dev = [
     "pytest ==7.2.1",
     "pytest-cov ==4.0.0",
-    "bump2version ==1.0.1",
+    "bump-my-version",
     "prospector ==1.8.4",
     "pyroma ==2.5",
     "jupyter ==1.0.0",
@@ -56,3 +55,15 @@ docs = [
     "jinja2 == 3.0.3",
     "black == 24.1.1"
 ]
+
+[tool.bumpversion]
+current_version = "0.5.0"
+
+[[tool.bumpversion.files]]
+filename = "aiproteomics/__init__.py"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+
+[[tool.bumpversion.files]]
+filename = "CITATION.cff"
