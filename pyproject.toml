@@ -16,7 +16,7 @@ authors = [
 ]
 license = {text = "Apache Software License"}
 readme = "README.md"
-requires-python = ">=3.10.0,<3.12"
+requires-python = ">=3.10.0,<3.11"
 
 dependencies = [
     "tensorflow ==2.15.0",
