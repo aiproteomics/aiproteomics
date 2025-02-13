@@ -39,7 +39,7 @@ authors:
 
 date-released: 2024-12-31
 doi: 10.5281/zenodo.7890716
-version: "0.5.0"
+version: "0.6.0"
 repository-code: "https://github.com/https://github.com/aiproteomics/aiproteomics"
 keywords:
   - machine learning
